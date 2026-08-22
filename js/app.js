@@ -72,19 +72,31 @@ function initials(title) {
 function mountPoster(wrapEl, item, badgeText) {
   const badge = item.upcoming ? 'À venir' : badgeText;
   wrapEl.innerHTML = `${badge ? `<span class="badge">${badge}</span>` : ''}<div class="poster-fallback">${initials(item.title)}</div>`;
-  fetchPosterUrl(item.wikiTitle).then(src => {
-    if (!src) return;
+
+  const showImage = (src, onFail) => {
     const img = new Image();
     img.alt = item.title;
     img.onload = () => {
-      const badge = wrapEl.querySelector('.badge');
+      const b = wrapEl.querySelector('.badge');
       wrapEl.innerHTML = '';
-      if (badge) wrapEl.appendChild(badge);
+      if (b) wrapEl.appendChild(b);
       wrapEl.appendChild(img);
     };
-    img.onerror = () => {}; // garde le fallback
+    img.onerror = () => { if (onFail) onFail(); }; // sinon la vignette stylée déjà affichée reste
     img.src = src;
-  });
+  };
+
+  const fetchLive = () => {
+    fetchPosterUrl(item.wikiTitle).then(src => { if (src) showImage(src, null); });
+  };
+
+  // Priorité : affiche stockée localement dans le dépôt ; sinon fetch live
+  // Wikipédia ; sinon la vignette stylée (déjà affichée ci-dessus) reste.
+  if (item.poster) {
+    showImage(item.poster, fetchLive);
+  } else {
+    fetchLive();
+  }
 }
 
 // ------------------------------------------------------------- ACCUEIL ---
@@ -246,10 +258,10 @@ function renderFiche(id) {
         <div class="fiche-tags">
           <span class="tag">${FRANCHISE_LABELS[item.franchise]}</span>
           <span class="tag">${item.type}</span>
-          <span class="tag">${item.saga}</span>
           ${item.upcoming ? '<span class="tag">À venir</span>' : ''}
         </div>
         <dl class="fiche-facts">
+          <dt>Saga / continuité</dt><dd>${item.saga} <span style="color:var(--text-dim); font-weight:400;">— sous-groupe auquel appartient ce titre au sein de « ${FRANCHISE_LABELS[item.franchise]} »</span></dd>
           <dt>Année</dt><dd>${item.year}</dd>
           <dt>Réalisateur</dt><dd>${item.director}</dd>
           <dt>Casting</dt><dd>${item.cast.join(', ')}</dd>
