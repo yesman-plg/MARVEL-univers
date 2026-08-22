@@ -261,7 +261,7 @@ function renderFiche(id) {
           ${item.upcoming ? '<span class="tag">À venir</span>' : ''}
         </div>
         <dl class="fiche-facts">
-          <dt>Saga / continuité</dt><dd>${item.saga} <span style="color:var(--text-dim); font-weight:400;">— sous-groupe auquel appartient ce titre au sein de « ${FRANCHISE_LABELS[item.franchise]} »</span></dd>
+          <dt>Sous-série</dt><dd>${item.saga}</dd>
           <dt>Année</dt><dd>${item.year}</dd>
           <dt>Réalisateur</dt><dd>${item.director}</dd>
           <dt>Casting</dt><dd>${item.cast.join(', ')}</dd>
