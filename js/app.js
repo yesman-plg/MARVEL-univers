@@ -226,7 +226,7 @@ function renderGrid() {
       <div class="poster-wrap" id="poster-${it.id}"></div>
       <div class="card-info">
         <h3>${it.title}</h3>
-        <div class="meta">${it.year} · ${it.type}</div>
+        <div class="meta">${it.year} · ${it.type}${it.animated ? ' · Animation' : ''}</div>
       </div>
     </div>
   `).join('');
@@ -258,6 +258,7 @@ function renderFiche(id) {
         <div class="fiche-tags">
           <span class="tag">${FRANCHISE_LABELS[item.franchise]}</span>
           <span class="tag">${item.type}</span>
+          ${item.animated ? '<span class="tag">Animation</span>' : ''}
           ${item.upcoming ? '<span class="tag">À venir</span>' : ''}
         </div>
         <dl class="fiche-facts">
