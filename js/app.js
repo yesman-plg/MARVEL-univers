@@ -126,6 +126,18 @@ function mountPoster(wrapEl, item, badgeText) {
   }
 }
 
+// Portrait de personnage : uniquement les images stockées localement dans le
+// dépôt (pas de fetch live pour ceux-ci) ; sinon la vignette initiales reste.
+function mountPortrait(wrapEl, character) {
+  wrapEl.innerHTML = `<div class="poster-fallback">${initials(character.name)}</div>`;
+  if (!character.portrait) return;
+  const img = new Image();
+  img.alt = character.name;
+  img.onload = () => { wrapEl.innerHTML = ''; wrapEl.appendChild(img); };
+  img.onerror = () => {}; // garde le fallback
+  img.src = character.portrait;
+}
+
 // ------------------------------------------------------------- ACCUEIL ---
 function renderAccueil() {
   app.innerHTML = `
@@ -468,7 +480,7 @@ function renderPersoGrid() {
 
   chars.forEach(c => {
     const wrap = document.getElementById(`perso-poster-${c.id}`);
-    wrap.innerHTML = `<div class="poster-fallback">${initials(c.name)}</div>`;
+    mountPortrait(wrap, c);
   });
 
   grid.querySelectorAll('.card').forEach(card => {
@@ -491,9 +503,7 @@ function renderPersonnage(id) {
   app.innerHTML = `
     <a class="back-link" href="#/personnages">&larr; Retour aux personnages</a>
     <div class="fiche">
-      <div class="fiche-poster" id="perso-fiche-poster">
-        <div class="poster-fallback">${initials(c.name)}</div>
-      </div>
+      <div class="fiche-poster" id="perso-fiche-poster"></div>
       <div class="fiche-body">
         <h1>${c.name}</h1>
         ${c.realName && c.realName !== c.name ? `<p style="color:var(--text-dim); margin:-6px 0 14px;">${c.realName}</p>` : ''}
@@ -521,4 +531,6 @@ function renderPersonnage(id) {
       </div>
     </div>
   `;
+
+  mountPortrait(document.getElementById('perso-fiche-poster'), c);
 }
