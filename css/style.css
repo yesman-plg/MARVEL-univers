@@ -388,3 +388,9 @@ body {
 }
 .appearance-chip:hover { border-color: var(--red); color: var(--red); }
 .appearance-chip span { color: var(--text-dim); font-size: 0.78rem; }
+.appearance-chip-plain {
+  cursor: default;
+  border-style: dashed;
+  color: var(--text-dim);
+}
+.appearance-chip-plain:hover { border-color: var(--border); color: var(--text-dim); }

@@ -304,7 +304,6 @@ function renderFiche(id) {
           <dt>Sous-série</dt><dd>${item.saga}</dd>
           <dt>Année</dt><dd>${item.year}</dd>
           <dt>Réalisateur</dt><dd>${item.director}</dd>
-          <dt>Casting</dt><dd>${item.cast.join(', ')}</dd>
           <dt>Durée</dt><dd>${item.duration}</dd>
           <dt>Situé en</dt><dd>${item.chronoNote}</dd>
         </dl>
@@ -312,18 +311,18 @@ function renderFiche(id) {
           <h2>Synopsis</h2>
           <p>${item.synopsis}</p>
         </div>
-        ${(() => {
-          const chars = (typeof MARVEL_CHARACTERS !== 'undefined' ? MARVEL_CHARACTERS : [])
-            .filter(c => c.appearances.includes(item.id));
-          if (chars.length === 0) return '';
-          return `
-            <div class="fiche-synopsis">
-              <h2>Personnages</h2>
-              <div class="appearances-list">
-                ${chars.map(c => `<a class="appearance-chip" href="#/personnage/${c.id}">${c.name}</a>`).join('')}
-              </div>
-            </div>`;
-        })()}
+        <div class="fiche-synopsis">
+          <h2>Casting</h2>
+          <div class="appearances-list">
+            ${item.cast.map(actor => {
+              const c = (typeof MARVEL_CHARACTERS !== 'undefined' ? MARVEL_CHARACTERS : [])
+                .find(ch => ch.appearances.includes(item.id) && ch.actor.includes(actor));
+              return c
+                ? `<a class="appearance-chip" href="#/personnage/${c.id}">${actor} <span>— ${c.name}</span></a>`
+                : `<span class="appearance-chip appearance-chip-plain">${actor}</span>`;
+            }).join('')}
+          </div>
+        </div>
         <div class="user-section">
           <h2>Mon avis</h2>
           <button id="watched-btn" class="watched-btn"></button>
