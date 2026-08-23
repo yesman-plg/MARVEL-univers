@@ -43,7 +43,8 @@ function setUserEntry(id, patch) {
 function render() {
   const { route, param } = parseHash();
   document.querySelectorAll('.mainnav a').forEach(a => a.classList.remove('active'));
-  const activeLink = document.querySelector(`.mainnav a[href="#/${route}"]`) ||
+  const navRoute = route === 'personnage' ? 'personnages' : route;
+  const activeLink = document.querySelector(`.mainnav a[href="#/${navRoute}"]`) ||
                       (route === 'fiche' ? null : document.querySelector('.mainnav a[href="#/accueil"]'));
   if (activeLink) activeLink.classList.add('active');
 
@@ -52,6 +53,8 @@ function render() {
   if (route === 'catalogue') return renderCatalogue();
   if (route === 'fiche') return renderFiche(param);
   if (route === 'chronologie') return renderChronologie(param || 'mcu');
+  if (route === 'personnages') return renderPersonnages();
+  if (route === 'personnage') return renderPersonnage(param);
   return renderAccueil();
 }
 
@@ -297,6 +300,18 @@ function renderFiche(id) {
           <h2>Synopsis</h2>
           <p>${item.synopsis}</p>
         </div>
+        ${(() => {
+          const chars = (typeof MARVEL_CHARACTERS !== 'undefined' ? MARVEL_CHARACTERS : [])
+            .filter(c => c.appearances.includes(item.id));
+          if (chars.length === 0) return '';
+          return `
+            <div class="fiche-synopsis">
+              <h2>Personnages</h2>
+              <div class="appearances-list">
+                ${chars.map(c => `<a class="appearance-chip" href="#/personnage/${c.id}">${c.name}</a>`).join('')}
+              </div>
+            </div>`;
+        })()}
         <div class="user-section">
           <h2>Mon avis</h2>
           <button id="watched-btn" class="watched-btn"></button>
@@ -410,4 +425,100 @@ function renderChronologie(activeFranchise) {
   list.querySelectorAll('.chrono-item').forEach(el => {
     el.addEventListener('click', () => { location.hash = `#/fiche/${el.dataset.id}`; });
   });
+}
+
+// ------------------------------------------------------------ PERSONNAGES ---
+let personnagesSearch = '';
+
+function renderPersonnages() {
+  app.innerHTML = `
+    <div class="filters">
+      <input type="search" id="perso-search" placeholder="Rechercher un personnage..." value="${personnagesSearch}">
+    </div>
+    <div class="grid" id="perso-grid"></div>
+  `;
+  document.getElementById('perso-search').addEventListener('input', (e) => {
+    personnagesSearch = e.target.value;
+    renderPersoGrid();
+  });
+  renderPersoGrid();
+}
+
+function renderPersoGrid() {
+  const grid = document.getElementById('perso-grid');
+  const q = personnagesSearch.trim().toLowerCase();
+  const chars = MARVEL_CHARACTERS
+    .filter(c => !q || c.name.toLowerCase().includes(q) || (c.realName || '').toLowerCase().includes(q))
+    .sort((a, b) => a.name.localeCompare(b.name, 'fr'));
+
+  if (chars.length === 0) {
+    grid.innerHTML = `<div class="empty-msg">Aucun résultat.</div>`;
+    return;
+  }
+
+  grid.innerHTML = chars.map(c => `
+    <div class="card" data-id="${c.id}">
+      <div class="poster-wrap" id="perso-poster-${c.id}"></div>
+      <div class="card-info">
+        <h3>${c.name}</h3>
+        <div class="meta">${c.actor}</div>
+      </div>
+    </div>
+  `).join('');
+
+  chars.forEach(c => {
+    const wrap = document.getElementById(`perso-poster-${c.id}`);
+    wrap.innerHTML = `<div class="poster-fallback">${initials(c.name)}</div>`;
+  });
+
+  grid.querySelectorAll('.card').forEach(card => {
+    card.addEventListener('click', () => { location.hash = `#/personnage/${card.dataset.id}`; });
+  });
+}
+
+function renderPersonnage(id) {
+  const c = MARVEL_CHARACTERS.find(x => x.id === id);
+  if (!c) {
+    app.innerHTML = `<a class="back-link" href="#/personnages">&larr; Retour aux personnages</a><div class="empty-msg">Personnage introuvable.</div>`;
+    return;
+  }
+
+  const appearanceItems = c.appearances
+    .map(fid => MARVEL_DATA.find(f => f.id === fid))
+    .filter(Boolean)
+    .sort((a, b) => a.year - b.year);
+
+  app.innerHTML = `
+    <a class="back-link" href="#/personnages">&larr; Retour aux personnages</a>
+    <div class="fiche">
+      <div class="fiche-poster" id="perso-fiche-poster">
+        <div class="poster-fallback">${initials(c.name)}</div>
+      </div>
+      <div class="fiche-body">
+        <h1>${c.name}</h1>
+        ${c.realName && c.realName !== c.name ? `<p style="color:var(--text-dim); margin:-6px 0 14px;">${c.realName}</p>` : ''}
+        <div class="fiche-tags">
+          <span class="tag">Personnage</span>
+        </div>
+        <dl class="fiche-facts">
+          <dt>Interprété par</dt><dd>${c.actor}</dd>
+          <dt>Naissance</dt><dd>${c.birth || 'Non précisée'}</dd>
+          <dt>Origine</dt><dd>${c.origin}</dd>
+          <dt>Affiliation</dt><dd>${c.affiliation}</dd>
+          <dt>Pouvoirs</dt><dd>${c.powers}</dd>
+        </dl>
+        <div class="fiche-synopsis">
+          <h2>Histoire</h2>
+          <p>${c.history}</p>
+        </div>
+
+        <div class="user-section">
+          <h2>Apparaît dans</h2>
+          <div class="appearances-list">
+            ${appearanceItems.map(f => `<a class="appearance-chip" href="#/fiche/${f.id}">${f.title} <span>(${f.year})</span></a>`).join('')}
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
 }
