@@ -17,6 +17,29 @@ function parseHash() {
   return { route: parts[0] || 'accueil', param: parts[1] ? decodeURIComponent(parts[1]) : null };
 }
 
+// ------------------------------------------------------------ MON AVIS ---
+// Stockage 100% local au navigateur (localStorage) : vu / note / commentaire
+// par fiche. Rien n'est envoyé nulle part, ni partagé avec les autres
+// visiteurs du site — c'est un suivi personnel propre à cet appareil.
+const USER_DATA_KEY = 'marvelsite_userdata_v1';
+function loadUserData() {
+  try { return JSON.parse(localStorage.getItem(USER_DATA_KEY)) || {}; }
+  catch { return {}; }
+}
+function saveUserData(data) {
+  try { localStorage.setItem(USER_DATA_KEY, JSON.stringify(data)); } catch {}
+}
+function getUserEntry(id) {
+  const data = loadUserData();
+  return data[id] || { watched: false, rating: 0, comment: '' };
+}
+function setUserEntry(id, patch) {
+  const data = loadUserData();
+  data[id] = Object.assign({ watched: false, rating: 0, comment: '' }, data[id], patch);
+  saveUserData(data);
+  return data[id];
+}
+
 function render() {
   const { route, param } = parseHash();
   document.querySelectorAll('.mainnav a').forEach(a => a.classList.remove('active'));
@@ -71,15 +94,16 @@ function initials(title) {
 // puis remplace par la vraie image dès qu'elle est chargée (si dispo).
 function mountPoster(wrapEl, item, badgeText) {
   const badge = item.upcoming ? 'À venir' : badgeText;
-  wrapEl.innerHTML = `${badge ? `<span class="badge">${badge}</span>` : ''}<div class="poster-fallback">${initials(item.title)}</div>`;
+  const watchedBadge = getUserEntry(item.id).watched ? '<span class="watched-badge">Vu</span>' : '';
+  wrapEl.innerHTML = `${badge ? `<span class="badge">${badge}</span>` : ''}${watchedBadge}<div class="poster-fallback">${initials(item.title)}</div>`;
 
   const showImage = (src, onFail) => {
     const img = new Image();
     img.alt = item.title;
     img.onload = () => {
-      const b = wrapEl.querySelector('.badge');
+      const kept = Array.from(wrapEl.querySelectorAll('.badge, .watched-badge'));
       wrapEl.innerHTML = '';
-      if (b) wrapEl.appendChild(b);
+      kept.forEach(el => wrapEl.appendChild(el));
       wrapEl.appendChild(img);
     };
     img.onerror = () => { if (onFail) onFail(); }; // sinon la vignette stylée déjà affichée reste
@@ -274,11 +298,81 @@ function renderFiche(id) {
           <p>${item.synopsis}</p>
         </div>
         <a class="wiki-link" target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/${encodeURIComponent(item.wikiTitle.replace(/ /g, '_'))}">Voir la page Wikipédia (EN) &rarr;</a>
+
+        <div class="user-section">
+          <h2>Mon avis</h2>
+          <button id="watched-btn" class="watched-btn"></button>
+          <div class="star-rating">
+            <div class="stars" id="star-rating"></div>
+            <span class="rating-label" id="rating-label"></span>
+          </div>
+          <textarea id="user-comment" class="user-comment" placeholder="Ton avis, tes notes sur ce film/cette série...">${escapeHtml(getUserEntry(item.id).comment)}</textarea>
+          <span class="save-indicator" id="save-indicator">Enregistré ✓</span>
+        </div>
       </div>
     </div>
   `;
 
   mountPoster(document.getElementById('fiche-poster'), item, null);
+  mountUserSection(item.id);
+}
+
+function escapeHtml(str) {
+  return (str || '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+}
+
+function mountUserSection(id) {
+  let entry = getUserEntry(id);
+
+  const watchedBtn = document.getElementById('watched-btn');
+  const starsEl = document.getElementById('star-rating');
+  const ratingLabel = document.getElementById('rating-label');
+  const commentEl = document.getElementById('user-comment');
+  const saveIndicator = document.getElementById('save-indicator');
+
+  function renderWatchedBtn() {
+    watchedBtn.textContent = entry.watched ? '✓ Vu' : 'Marquer comme vu';
+    watchedBtn.classList.toggle('active', entry.watched);
+  }
+  function renderStars() {
+    starsEl.innerHTML = [1, 2, 3, 4, 5].map(n =>
+      `<span class="star${n <= entry.rating ? ' filled' : ''}" data-n="${n}">★</span>`
+    ).join('');
+    ratingLabel.textContent = entry.rating > 0 ? `${entry.rating}/5` : 'Pas encore noté';
+  }
+  function flashSaved() {
+    saveIndicator.classList.add('show');
+    clearTimeout(flashSaved._t);
+    flashSaved._t = setTimeout(() => saveIndicator.classList.remove('show'), 1500);
+  }
+
+  renderWatchedBtn();
+  renderStars();
+
+  watchedBtn.addEventListener('click', () => {
+    entry = setUserEntry(id, { watched: !entry.watched });
+    renderWatchedBtn();
+    flashSaved();
+  });
+
+  starsEl.addEventListener('click', (e) => {
+    const star = e.target.closest('.star');
+    if (!star) return;
+    const n = Number(star.dataset.n);
+    const newRating = entry.rating === n ? 0 : n; // recliquer sur la même étoile réinitialise
+    entry = setUserEntry(id, { rating: newRating });
+    renderStars();
+    flashSaved();
+  });
+
+  let commentTimer;
+  commentEl.addEventListener('input', () => {
+    clearTimeout(commentTimer);
+    commentTimer = setTimeout(() => {
+      entry = setUserEntry(id, { comment: commentEl.value });
+      flashSaved();
+    }, 500);
+  });
 }
 
 // ---------------------------------------------------------- CHRONOLOGIE ---
