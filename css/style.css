@@ -368,3 +368,16 @@ body {
 .chrono-main h4 { margin: 0; font-size: 0.98rem; }
 .chrono-main span { color: var(--text-dim); font-size: 0.78rem; }
 .chrono-when { color: var(--gold); font-size: 0.78rem; text-align: right; min-width: 130px; }
+
+/* --- Mobile : plusieurs affiches par ligne au lieu d'une seule --- */
+@media (max-width: 640px) {
+  #app { padding: 18px 12px 40px; }
+  .grid {
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 10px;
+  }
+  .card-info { padding: 8px 8px 10px; }
+  .card-info h3 { font-size: 0.8rem; line-height: 1.2; }
+  .card-info .meta { font-size: 0.68rem; }
+  .badge, .watched-badge { font-size: 0.6rem; padding: 2px 6px; }
+}
