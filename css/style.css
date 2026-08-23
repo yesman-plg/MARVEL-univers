@@ -360,6 +360,22 @@ body {
 .chrono-main span { color: var(--text-dim); font-size: 0.78rem; }
 .chrono-when { color: var(--gold); font-size: 0.78rem; text-align: right; min-width: 130px; }
 
+.chrono-item.chrono-watched { opacity: 0.6; border-color: var(--border); }
+.chrono-item.chrono-watched:hover { opacity: 1; }
+.chrono-item.chrono-watched .chrono-num { background: #2e7d32; }
+.chrono-watched-badge {
+  display: inline-block;
+  background: #2e7d32;
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 10px;
+  text-transform: uppercase;
+  vertical-align: middle;
+  margin-left: 6px;
+}
+
 /* --- Mobile : plusieurs affiches par ligne au lieu d'une seule --- */
 @media (max-width: 640px) {
   #app { padding: 18px 12px 40px; }

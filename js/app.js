@@ -422,16 +422,19 @@ function renderChronologie(activeFranchise) {
     .sort((a, b) => a.chronoOrder - b.chronoOrder);
 
   const list = document.getElementById('chrono-list');
-  list.innerHTML = items.map((it, i) => `
-    <div class="chrono-item" data-id="${it.id}">
+  list.innerHTML = items.map((it, i) => {
+    const watched = getUserEntry(it.id).watched;
+    return `
+    <div class="chrono-item${watched ? ' chrono-watched' : ''}" data-id="${it.id}">
       <div class="chrono-num">${i + 1}</div>
       <div class="chrono-main">
-        <h4>${it.title}${it.franchise !== activeFranchise ? ` <small style="color:var(--gold); font-weight:700;">[${FRANCHISE_LABELS[it.franchise]}]</small>` : ''}</h4>
+        <h4>${it.title}${it.franchise !== activeFranchise ? ` <small style="color:var(--gold); font-weight:700;">[${FRANCHISE_LABELS[it.franchise]}]</small>` : ''}${watched ? ' <span class="chrono-watched-badge">Vu</span>' : ''}</h4>
         <span>${it.type} · ${it.year} · ${it.saga}</span>
       </div>
       <div class="chrono-when">${it.chronoNote}</div>
     </div>
-  `).join('');
+  `;
+  }).join('');
 
   list.querySelectorAll('.chrono-item').forEach(el => {
     el.addEventListener('click', () => { location.hash = `#/fiche/${el.dataset.id}`; });
