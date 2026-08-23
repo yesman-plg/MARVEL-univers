@@ -460,7 +460,15 @@ body {
   line-height: 1.5;
 }
 .cast-appears-link:hover { color: var(--red); text-decoration: underline; }
-.cast-appears-more { display: block; font-size: 0.72rem; color: var(--text-dim); margin-top: 1px; }
+.cast-appears-more {
+  display: block;
+  font-size: 0.72rem;
+  color: var(--gold);
+  margin-top: 1px;
+  text-decoration: none;
+  font-weight: 600;
+}
+.cast-appears-more:hover { color: var(--red); text-decoration: underline; }
 
 /* --- Retour à l'endroit exact quitté (catalogue / chronologie) --- */
 .flash-highlight {

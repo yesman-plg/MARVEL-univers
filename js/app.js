@@ -365,7 +365,7 @@ function renderFiche(id) {
                       <div class="cast-appears">
                         <div class="cast-appears-label">Apparaît aussi dans</div>
                         ${others.slice(0, 3).map(f => `<a class="cast-appears-link" href="#/fiche/${f.id}">${f.title}</a>`).join('')}
-                        ${others.length > 3 ? `<span class="cast-appears-more">+${others.length - 3} autre${others.length - 3 > 1 ? 's' : ''}</span>` : ''}
+                        ${others.length > 3 ? `<a class="cast-appears-more" href="#/personnage/${c.id}">+${others.length - 3} autre${others.length - 3 > 1 ? 's' : ''} (voir tout)</a>` : ''}
                       </div>` : ''}
                   </div>
                 </div>`;
