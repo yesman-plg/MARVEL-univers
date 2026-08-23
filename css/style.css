@@ -411,6 +411,57 @@ body {
 }
 .appearance-chip-plain:hover { border-color: var(--border); color: var(--text-dim); }
 
+/* --- Casting (photo acteur + rôle + autres apparitions) --- */
+.cast-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 16px;
+}
+.cast-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.cast-photo {
+  width: 100%;
+  aspect-ratio: 1/1;
+  background: linear-gradient(135deg, #2a0000, #111);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.cast-photo img { width: 100%; height: 100%; object-fit: cover; }
+.cast-info { padding: 10px 10px 12px; }
+.cast-actor { font-weight: 700; font-size: 0.85rem; line-height: 1.25; }
+.cast-role {
+  display: inline-block;
+  margin-top: 4px;
+  color: var(--gold);
+  font-size: 0.78rem;
+  text-decoration: none;
+}
+.cast-role:hover { text-decoration: underline; }
+.cast-role-none { color: var(--text-dim); font-style: italic; }
+.cast-appears { margin-top: 8px; }
+.cast-appears-label {
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  margin-bottom: 3px;
+}
+.cast-appears-link {
+  display: block;
+  color: var(--text);
+  font-size: 0.75rem;
+  text-decoration: none;
+  line-height: 1.5;
+}
+.cast-appears-link:hover { color: var(--red); text-decoration: underline; }
+.cast-appears-more { display: block; font-size: 0.72rem; color: var(--text-dim); margin-top: 1px; }
+
 /* --- Retour à l'endroit exact quitté (catalogue / chronologie) --- */
 .flash-highlight {
   animation: flashHighlight 1.8s ease-out;

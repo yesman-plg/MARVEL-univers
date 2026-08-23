@@ -343,13 +343,32 @@ function renderFiche(id) {
         </div>
         <div class="fiche-synopsis">
           <h2>Casting</h2>
-          <div class="appearances-list">
-            ${item.cast.map(actor => {
+          <div class="cast-grid">
+            ${item.cast.map(raw => {
+              const clean = raw.replace(/\s*\([^)]*\)\s*$/, '').trim();
               const c = (typeof MARVEL_CHARACTERS !== 'undefined' ? MARVEL_CHARACTERS : [])
-                .find(ch => ch.appearances.includes(item.id) && ch.actor.includes(actor));
-              return c
-                ? `<a class="appearance-chip" href="#/personnage/${c.id}">${actor} <span>— ${c.name}</span></a>`
-                : `<span class="appearance-chip appearance-chip-plain">${actor}</span>`;
+                .find(ch => ch.appearances.includes(item.id) && ch.actor.includes(clean));
+              const photo = (typeof ACTOR_PHOTOS !== 'undefined') ? ACTOR_PHOTOS[clean] : null;
+              const others = c
+                ? c.appearances.filter(fid => fid !== item.id).map(fid => MARVEL_DATA.find(f => f.id === fid)).filter(Boolean)
+                : [];
+              return `
+                <div class="cast-card">
+                  <div class="cast-photo">${photo
+                    ? `<img src="${photo}" alt="${clean}" data-fallback="${initials(clean)}">`
+                    : `<div class="poster-fallback">${initials(clean)}</div>`}
+                  </div>
+                  <div class="cast-info">
+                    <div class="cast-actor">${raw}</div>
+                    ${c ? `<a class="cast-role" href="#/personnage/${c.id}">${c.name}</a>` : '<span class="cast-role cast-role-none">Rôle non recensé</span>'}
+                    ${others.length ? `
+                      <div class="cast-appears">
+                        <div class="cast-appears-label">Apparaît aussi dans</div>
+                        ${others.slice(0, 3).map(f => `<a class="cast-appears-link" href="#/fiche/${f.id}">${f.title}</a>`).join('')}
+                        ${others.length > 3 ? `<span class="cast-appears-more">+${others.length - 3} autre${others.length - 3 > 1 ? 's' : ''}</span>` : ''}
+                      </div>` : ''}
+                  </div>
+                </div>`;
             }).join('')}
           </div>
         </div>
@@ -368,6 +387,15 @@ function renderFiche(id) {
   `;
 
   mountPoster(document.getElementById('fiche-poster'), item, null);
+
+  document.querySelectorAll('.cast-photo img[data-fallback]').forEach(img => {
+    img.addEventListener('error', () => {
+      const div = document.createElement('div');
+      div.className = 'poster-fallback';
+      div.textContent = img.dataset.fallback;
+      img.replaceWith(div);
+    });
+  });
   mountUserSection(item.id);
 }
 
