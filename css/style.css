@@ -410,3 +410,13 @@ body {
   color: var(--text-dim);
 }
 .appearance-chip-plain:hover { border-color: var(--border); color: var(--text-dim); }
+
+/* --- Retour à l'endroit exact quitté (catalogue / chronologie) --- */
+.flash-highlight {
+  animation: flashHighlight 1.8s ease-out;
+}
+@keyframes flashHighlight {
+  0%   { box-shadow: 0 0 0 3px var(--red); border-color: var(--red); }
+  70%  { box-shadow: 0 0 0 3px var(--red); border-color: var(--red); }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}

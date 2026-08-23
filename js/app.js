@@ -17,6 +17,28 @@ function parseHash() {
   return { route: parts[0] || 'accueil', param: parts[1] ? decodeURIComponent(parts[1]) : null };
 }
 
+// -------------------------------------------------------- NAVIGATION RETOUR ---
+// Mémorise la page-liste (catalogue / chronologie) d'où l'on part, et le
+// titre précis sur lequel on a cliqué, pour pouvoir y revenir exactement au
+// bon endroit (scroll + surbrillance) via le lien "Retour".
+function rememberListRoute() { sessionStorage.setItem('marvelsite_lastListRoute', location.hash); }
+function getLastListRoute() { return sessionStorage.getItem('marvelsite_lastListRoute') || '#/catalogue'; }
+function rememberScrollTarget(id) { sessionStorage.setItem('marvelsite_scrollTarget', id); }
+function consumeScrollTarget() {
+  const id = sessionStorage.getItem('marvelsite_scrollTarget');
+  sessionStorage.removeItem('marvelsite_scrollTarget');
+  return id;
+}
+function restoreScrollTarget(selectorPrefix) {
+  const id = consumeScrollTarget();
+  if (!id) return;
+  const el = document.querySelector(`${selectorPrefix}[data-id="${id}"]`);
+  if (!el) return;
+  el.scrollIntoView({ behavior: 'auto', block: 'center' });
+  el.classList.add('flash-highlight');
+  setTimeout(() => el.classList.remove('flash-highlight'), 1800);
+}
+
 // ------------------------------------------------------------ MON AVIS ---
 // Stockage 100% local au navigateur (localStorage) : vu / note / commentaire
 // par fiche. Rien n'est envoyé nulle part, ni partagé avec les autres
@@ -217,6 +239,7 @@ function renderAccueil() {
 let catalogueState = { franchise: 'all', type: 'all', search: '' };
 
 function renderCatalogue() {
+  rememberListRoute();
   const franchises = Object.keys(FRANCHISE_LABELS);
 
   app.innerHTML = `
@@ -276,20 +299,27 @@ function renderGrid() {
   });
 
   grid.querySelectorAll('.card').forEach(card => {
-    card.addEventListener('click', () => { location.hash = `#/fiche/${card.dataset.id}`; });
+    card.addEventListener('click', () => {
+      rememberScrollTarget(card.dataset.id);
+      location.hash = `#/fiche/${card.dataset.id}`;
+    });
   });
+
+  restoreScrollTarget('.card');
 }
 
 // ---------------------------------------------------------------- FICHE ---
 function renderFiche(id) {
   const item = MARVEL_DATA.find(it => it.id === id);
+  const backHref = getLastListRoute();
+  const backLabel = backHref.startsWith('#/chronologie') ? 'Retour à l\'ordre chronologique' : 'Retour au catalogue';
   if (!item) {
-    app.innerHTML = `<a class="back-link" href="#/catalogue">&larr; Retour au catalogue</a><div class="empty-msg">Fiche introuvable.</div>`;
+    app.innerHTML = `<a class="back-link" href="${backHref}">&larr; ${backLabel}</a><div class="empty-msg">Fiche introuvable.</div>`;
     return;
   }
 
   app.innerHTML = `
-    <a class="back-link" href="#/catalogue">&larr; Retour au catalogue</a>
+    <a class="back-link" href="${backHref}">&larr; ${backLabel}</a>
     <div class="fiche">
       <div class="fiche-poster" id="fiche-poster"></div>
       <div class="fiche-body">
@@ -403,6 +433,7 @@ function mountUserSection(id) {
 function renderChronologie(activeFranchise) {
   const franchises = Object.keys(FRANCHISE_LABELS);
   if (!franchises.includes(activeFranchise)) activeFranchise = 'mcu';
+  rememberListRoute();
 
   app.innerHTML = `
     <div class="chrono-tabs" id="chrono-tabs">
@@ -437,8 +468,13 @@ function renderChronologie(activeFranchise) {
   }).join('');
 
   list.querySelectorAll('.chrono-item').forEach(el => {
-    el.addEventListener('click', () => { location.hash = `#/fiche/${el.dataset.id}`; });
+    el.addEventListener('click', () => {
+      rememberScrollTarget(el.dataset.id);
+      location.hash = `#/fiche/${el.dataset.id}`;
+    });
   });
+
+  restoreScrollTarget('.chrono-item');
 }
 
 // ------------------------------------------------------------ PERSONNAGES ---
