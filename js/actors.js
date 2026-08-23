@@ -2,17 +2,20 @@
 // ACTOR_PHOTOS — photo (visage, hors costume) pour chaque acteur/actrice
 // listé dans un casting, indexée par nom exact (tel qu'écrit dans cast[]
 // dans data.js, sans la parenthèse éventuelle type "(narrateur)").
-// 229/239 acteurs couverts ; les 10 restants n'ont tout simplement aucune
-// photo disponible sur Wikipédia (vérifié) et utilisent le repli initiales.
+// 239/239 acteurs couverts (Wikipédia en priorité, TMDB en complément).
 // ============================================================================
 
 const ACTOR_PHOTOS = {
   'Aaron Taylor-Johnson': 'images/actors/aaron-taylor-johnson.jpg',
   'Adria Arjona': 'images/actors/adria-arjona.jpg',
   'Alan Cumming': 'images/actors/alan-cumming.jpg',
+  'Alaqua Cox': 'images/actors/alaqua-cox.jpg',
   'Alden Ehrenreich': 'images/actors/alden-ehrenreich.jpg',
   'Alfre Woodard': 'images/actors/alfre-woodard.jpg',
   'Alfred Molina': 'images/actors/alfred-molina.jpg',
+  'Alison Sealy-Smith': 'images/actors/alison-sealy-smith.jpg',
+  'Amber Rose Revah': 'images/actors/amber-rose-revah.jpg',
+  'Amy Rutberg': 'images/actors/amy-rutberg.jpg',
   'Andrew Garfield': 'images/actors/andrew-garfield.jpg',
   'Angelina Jolie': 'images/actors/angelina-jolie.jpg',
   'Anthony Hopkins': 'images/actors/anthony-hopkins.jpg',
@@ -68,6 +71,7 @@ const ACTOR_PHOTOS = {
   'Emma Corrin': 'images/actors/emma-corrin.jpg',
   'Emma Stone': 'images/actors/emma-stone.jpg',
   'Ethan Hawke': 'images/actors/ethan-hawke.jpg',
+  'Eugene Byrd': 'images/actors/eugene-byrd.jpg',
   'Eva Mendes': 'images/actors/eva-mendes.jpg',
   'Evangeline Lilly': 'images/actors/evangeline-lilly.jpg',
   'Famke Janssen': 'images/actors/famke-janssen.jpg',
@@ -77,12 +81,15 @@ const ACTOR_PHOTOS = {
   'Gemma Chan': 'images/actors/gemma-chan.jpg',
   'George Buza': 'images/actors/george-buza.jpg',
   'Goran Višnjić': 'images/actors/goran-višnjić.jpg',
+  'Grace Song': 'images/actors/grace-song.jpg',
   'Guy Pearce': 'images/actors/guy-pearce.jpg',
   'Gwyneth Paltrow': 'images/actors/gwyneth-paltrow.jpg',
   'Hailee Steinfeld': 'images/actors/hailee-steinfeld.jpg',
   'Halle Berry': 'images/actors/halle-berry.jpg',
+  'Harriet Sansom Harris': 'images/actors/harriet-sansom-harris.jpg',
   'Harrison Ford': 'images/actors/harrison-ford.jpg',
   'Hayley Atwell': 'images/actors/hayley-atwell.jpg',
+  'Hudson Thames': 'images/actors/hudson-thames.jpg',
   'Hugh Dancy': 'images/actors/hugh-dancy.jpg',
   'Hugh Jackman': 'images/actors/hugh-jackman.jpg',
   'Hugo Weaving': 'images/actors/hugo-weaving.jpg',
@@ -143,6 +150,7 @@ const ACTOR_PHOTOS = {
   'Lupita Nyong\'o': 'images/actors/lupita-nyong-o.jpg',
   'Mahershala Ali': 'images/actors/mahershala-ali.jpg',
   'Maisie Williams': 'images/actors/maisie-williams.jpg',
+  'Manny Montana': 'images/actors/manny-montana.jpg',
   'Marisa Tomei': 'images/actors/marisa-tomei.jpg',
   'Mark Ruffalo': 'images/actors/mark-ruffalo.jpg',
   'Matt Lintz': 'images/actors/matt-lintz.jpg',
@@ -231,6 +239,7 @@ const ACTOR_PHOTOS = {
   'Wyatt Russell': 'images/actors/wyatt-russell.jpg',
   'Xochitl Gomez': 'images/actors/xochitl-gomez.jpg',
   'Yahya Abdul-Mateen II': 'images/actors/yahya-abdul-mateen-ii.jpg',
+  'Yasmeen Fletcher': 'images/actors/yasmeen-fletcher.jpg',
   'Zazie Beetz': 'images/actors/zazie-beetz.jpg',
   'Zendaya': 'images/actors/zendaya.jpg',
   'Zeno Robinson': 'images/actors/zeno-robinson.jpg',
