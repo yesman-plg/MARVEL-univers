@@ -297,8 +297,6 @@ function renderFiche(id) {
           <h2>Synopsis</h2>
           <p>${item.synopsis}</p>
         </div>
-        <a class="wiki-link" target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/${encodeURIComponent(item.wikiTitle.replace(/ /g, '_'))}">Voir la page Wikipédia (EN) &rarr;</a>
-
         <div class="user-section">
           <h2>Mon avis</h2>
           <button id="watched-btn" class="watched-btn"></button>

@@ -229,15 +229,6 @@ body {
 .fiche-facts dd { margin: 0; }
 .fiche-synopsis { line-height: 1.6; color: #dcdce0; margin-top: 6px; }
 .fiche-synopsis h2 { font-size: 1rem; color: var(--red); margin-bottom: 6px; }
-.wiki-link {
-  display: inline-block;
-  margin-top: 20px;
-  color: var(--text-dim);
-  font-size: 0.85rem;
-  text-decoration: underline;
-}
-.wiki-link:hover { color: var(--red); }
-
 /* --- Mon avis (vu / note / commentaire) --- */
 .user-section {
   margin-top: 28px;
