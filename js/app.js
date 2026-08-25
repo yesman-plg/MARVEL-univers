@@ -120,13 +120,14 @@ function initials(title) {
 function mountPoster(wrapEl, item, badgeText) {
   const badge = item.upcoming ? 'À venir' : badgeText;
   const watchedBadge = getUserEntry(item.id).watched ? '<span class="watched-badge">Vu</span>' : '';
-  wrapEl.innerHTML = `${badge ? `<span class="badge">${badge}</span>` : ''}${watchedBadge}<div class="poster-fallback">${initials(item.title)}</div>`;
+  const plexBadge = (typeof plexLinkFor === 'function' && plexLinkFor(item.id)) ? '<span class="plex-badge">▶ Plex</span>' : '';
+  wrapEl.innerHTML = `${badge ? `<span class="badge">${badge}</span>` : ''}${watchedBadge}${plexBadge}<div class="poster-fallback">${initials(item.title)}</div>`;
 
   const showImage = (src, onFail) => {
     const img = new Image();
     img.alt = item.title;
     img.onload = () => {
-      const kept = Array.from(wrapEl.querySelectorAll('.badge, .watched-badge'));
+      const kept = Array.from(wrapEl.querySelectorAll('.badge, .watched-badge, .plex-badge'));
       wrapEl.innerHTML = '';
       kept.forEach(el => wrapEl.appendChild(el));
       wrapEl.appendChild(img);
@@ -330,6 +331,13 @@ function renderFiche(id) {
           ${item.animated ? '<span class="tag">Animation</span>' : ''}
           ${item.upcoming ? '<span class="tag">À venir</span>' : ''}
         </div>
+        ${(() => {
+          const plexUrl = (typeof plexLinkFor === 'function') ? plexLinkFor(item.id) : null;
+          if (!plexUrl) return '';
+          return `
+            <a class="plex-watch-btn" href="${plexUrl}" target="_blank" rel="noopener">▶ Regarder sur Plex</a>
+            <div class="plex-watch-note">Accessible uniquement sur le réseau Wi-Fi maison</div>`;
+        })()}
         <dl class="fiche-facts">
           <dt>Sous-série</dt><dd>${item.saga}</dd>
           <dt>Année</dt><dd>${item.year}</dd>
