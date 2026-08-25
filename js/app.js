@@ -491,11 +491,12 @@ function renderChronologie(activeFranchise) {
   const list = document.getElementById('chrono-list');
   list.innerHTML = items.map((it, i) => {
     const watched = getUserEntry(it.id).watched;
+    const onPlex = (typeof plexLinkFor === 'function' && plexLinkFor(it.id));
     return `
     <div class="chrono-item${watched ? ' chrono-watched' : ''}" data-id="${it.id}">
       <div class="chrono-num">${i + 1}</div>
       <div class="chrono-main">
-        <h4>${it.title}${it.franchise !== activeFranchise ? ` <small style="color:var(--gold); font-weight:700;">[${FRANCHISE_LABELS[it.franchise]}]</small>` : ''}${watched ? ' <span class="chrono-watched-badge">Vu</span>' : ''}</h4>
+        <h4>${it.title}${it.franchise !== activeFranchise ? ` <small style="color:var(--gold); font-weight:700;">[${FRANCHISE_LABELS[it.franchise]}]</small>` : ''}${watched ? ' <span class="chrono-watched-badge">Vu</span>' : ''}${onPlex ? ' <span class="chrono-plex-badge">▶ Plex</span>' : ''}</h4>
         <span>${it.type} · ${it.year} · ${it.saga}</span>
       </div>
       <div class="chrono-when">${it.chronoNote}</div>

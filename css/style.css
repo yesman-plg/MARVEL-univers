@@ -375,6 +375,18 @@ body {
   vertical-align: middle;
   margin-left: 6px;
 }
+.chrono-plex-badge {
+  display: inline-block;
+  background: #e5a00d;
+  color: #1c1c1c;
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 10px;
+  text-transform: uppercase;
+  vertical-align: middle;
+  margin-left: 6px;
+}
 
 /* --- Mobile : plusieurs affiches par ligne au lieu d'une seule --- */
 @media (max-width: 640px) {
