@@ -117,10 +117,10 @@ function initials(title) {
 
 // Construit une vignette d'affiche : place un fallback stylé immédiatement,
 // puis remplace par la vraie image dès qu'elle est chargée (si dispo).
-function mountPoster(wrapEl, item, badgeText) {
+function mountPoster(wrapEl, item, badgeText, showPlexBadge = true) {
   const badge = item.upcoming ? 'À venir' : badgeText;
   const watchedBadge = getUserEntry(item.id).watched ? '<span class="watched-badge">Vu</span>' : '';
-  const plexBadge = (typeof plexLinkFor === 'function' && plexLinkFor(item.id)) ? '<span class="plex-badge">▶ Plex</span>' : '';
+  const plexBadge = (showPlexBadge && typeof plexLinkFor === 'function' && plexLinkFor(item.id)) ? '<span class="plex-badge">▶ Plex</span>' : '';
   wrapEl.innerHTML = `${badge ? `<span class="badge">${badge}</span>` : ''}${watchedBadge}${plexBadge}<div class="poster-fallback">${initials(item.title)}</div>`;
 
   const showImage = (src, onFail) => {
@@ -394,7 +394,7 @@ function renderFiche(id) {
     </div>
   `;
 
-  mountPoster(document.getElementById('fiche-poster'), item, null);
+  mountPoster(document.getElementById('fiche-poster'), item, null, false);
 
   document.querySelectorAll('.cast-photo img[data-fallback]').forEach(img => {
     img.addEventListener('error', () => {
