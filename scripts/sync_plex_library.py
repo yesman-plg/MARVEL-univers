@@ -64,6 +64,35 @@ def load_token():
     return TOKEN_FILE.read_text().strip()
 
 
+# Shows où le site sépare chaque saison en fiche distincte, alors que Plex
+# regroupe tout sous une seule fiche "show" — titre normalisé -> {saison: id}.
+SEASON_SPLIT_SHOWS = {
+    "loki": {1: "loki-s1", 2: "loki-s2"},
+    "punisher": {1: "punisher-s1", 2: "punisher-s2"},
+    "what if": {1: "what-if-s1", 2: "what-if-s2", 3: "what-if-s3"},
+    "daredevil": {1: "daredevil-nf-s1", 2: "daredevil-nf-s2", 3: "daredevil-nf-s3"},
+    "jessica jones": {1: "jessica-jones-s1", 2: "jessica-jones-s2", 3: "jessica-jones-s3"},
+    "luke cage": {1: "luke-cage-s1", 2: "luke-cage-s2"},
+    "iron fist": {1: "iron-fist-s1", 2: "iron-fist-s2"},
+    "daredevil born again": {1: "daredevil-born-again", 2: "daredevil-born-again-s2"},
+    "x-men 97": {1: "xmen-97-s1", 2: "xmen-97-s2"},
+}
+
+
+def fetch_seasons(show_rating_key, token):
+    url = f"{PLEX_BASE}/library/metadata/{show_rating_key}/children?X-Plex-Token={urllib.parse.quote(token)}"
+    with urllib.request.urlopen(url, timeout=15) as resp:
+        xml = resp.read().decode("utf-8")
+    root = ET.fromstring(xml)
+    seasons = []
+    for el in root.findall("Directory"):
+        idx = el.get("index")
+        if idx is None:
+            continue
+        seasons.append({"ratingKey": el.get("ratingKey"), "index": int(idx)})
+    return seasons
+
+
 def fetch_section(section_id, token):
     url = f"{PLEX_BASE}/library/sections/{section_id}/all?X-Plex-Token={urllib.parse.quote(token)}"
     with urllib.request.urlopen(url, timeout=15) as resp:
@@ -135,11 +164,27 @@ def main():
             used_ids.add(entry["id"])
             flag = "" if score == 1.0 else f"  (fuzzy match, confiance {score:.2f})"
             print(f"  OK  {item['title']!r} (Plex #{item['ratingKey']}) -> {entry['id']}{flag}")
-        else:
-            unmatched.append(item)
-            print(f"  ??  {item['title']!r} (Plex #{item['ratingKey']}, {item['year']}) — aucune fiche correspondante trouvée")
+            continue
 
-    print(f"\n{len(library)}/{len(plex_items)} titres reliés.")
+        # Pas de match direct : est-ce un show multi-saisons connu du site ?
+        season_map = SEASON_SPLIT_SHOWS.get(normalize(item["title"]))
+        if season_map:
+            seasons = fetch_seasons(item["ratingKey"], token)
+            linked_any = False
+            for season in seasons:
+                site_id = season_map.get(season["index"])
+                if site_id and site_id not in used_ids:
+                    library[site_id] = int(season["ratingKey"])
+                    used_ids.add(site_id)
+                    print(f"  OK  {item['title']!r} Saison {season['index']} (Plex #{season['ratingKey']}) -> {site_id}")
+                    linked_any = True
+            if linked_any:
+                continue
+
+        unmatched.append(item)
+        print(f"  ??  {item['title']!r} (Plex #{item['ratingKey']}, {item['year']}) — aucune fiche correspondante trouvée")
+
+    print(f"\n{len(library)} fiches du site reliées (à partir de {len(plex_items)} éléments Plex, saisons incluses).")
     if unmatched:
         print(f"{len(unmatched)} titres Plex sans correspondance (pas grave si ce ne sont pas des films/séries Marvel du site) :")
         for u in unmatched:
