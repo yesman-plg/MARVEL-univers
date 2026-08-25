@@ -201,6 +201,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
 }
 .fiche-poster img { width: 100%; height: 100%; object-fit: cover; }
 
