@@ -121,13 +121,14 @@ function mountPoster(wrapEl, item, badgeText, showPlexBadge = true) {
   const badge = item.upcoming ? 'À venir' : badgeText;
   const watchedBadge = getUserEntry(item.id).watched ? '<span class="watched-badge">Vu</span>' : '';
   const plexBadge = (showPlexBadge && typeof plexLinkFor === 'function' && plexLinkFor(item.id)) ? '<span class="plex-badge">▶ Plex</span>' : '';
-  wrapEl.innerHTML = `${badge ? `<span class="badge">${badge}</span>` : ''}${watchedBadge}${plexBadge}<div class="poster-fallback">${initials(item.title)}</div>`;
+  const watchBadge = (showPlexBadge && !plexBadge && typeof hasWatchLinks === 'function' && hasWatchLinks(item)) ? '<span class="watch-badge">Où voir</span>' : '';
+  wrapEl.innerHTML = `${badge ? `<span class="badge">${badge}</span>` : ''}${watchedBadge}${plexBadge}${watchBadge}<div class="poster-fallback">${initials(item.title)}</div>`;
 
   const showImage = (src, onFail) => {
     const img = new Image();
     img.alt = item.title;
     img.onload = () => {
-      const kept = Array.from(wrapEl.querySelectorAll('.badge, .watched-badge, .plex-badge'));
+      const kept = Array.from(wrapEl.querySelectorAll('.badge, .watched-badge, .plex-badge, .watch-badge'));
       wrapEl.innerHTML = '';
       kept.forEach(el => wrapEl.appendChild(el));
       wrapEl.appendChild(img);
@@ -333,10 +334,19 @@ function renderFiche(id) {
         </div>
         ${(() => {
           const plexUrl = (typeof plexLinkFor === 'function') ? plexLinkFor(item.id) : null;
-          if (!plexUrl) return '';
-          return `
+          if (plexUrl) {
+            return `
             <a class="plex-watch-btn" href="${plexUrl}" target="_blank" rel="noopener">▶ Regarder sur Plex</a>
             <div class="plex-watch-note">Accessible uniquement sur le réseau Wi-Fi maison</div>`;
+          }
+          // Pas sur le serveur : liens de recherche vers les sites externes.
+          const links = (typeof watchLinksFor === 'function') ? watchLinksFor(item) : [];
+          if (!links.length) return '';
+          return `
+            <div class="watch-btn-row">
+              ${links.map(l => `<a class="watch-btn watch-btn-${l.key}" href="${l.href}" target="_blank" rel="noopener">${l.label}</a>`).join('')}
+            </div>
+            <div class="plex-watch-note">Pas sur le serveur Plex — recherche du titre sur ces sites</div>`;
         })()}
         <dl class="fiche-facts">
           <dt>Sous-série</dt><dd>${item.saga}</dd>
@@ -492,11 +502,12 @@ function renderChronologie(activeFranchise) {
   list.innerHTML = items.map((it, i) => {
     const watched = getUserEntry(it.id).watched;
     const onPlex = (typeof plexLinkFor === 'function' && plexLinkFor(it.id));
+    const onWatch = !onPlex && (typeof hasWatchLinks === 'function' && hasWatchLinks(it));
     return `
     <div class="chrono-item${watched ? ' chrono-watched' : ''}" data-id="${it.id}">
       <div class="chrono-num">${i + 1}</div>
       <div class="chrono-main">
-        <h4>${it.title}${it.franchise !== activeFranchise ? ` <small style="color:var(--gold); font-weight:700;">[${FRANCHISE_LABELS[it.franchise]}]</small>` : ''}${watched ? ' <span class="chrono-watched-badge">Vu</span>' : ''}${onPlex ? ' <span class="chrono-plex-badge">▶ Plex</span>' : ''}</h4>
+        <h4>${it.title}${it.franchise !== activeFranchise ? ` <small style="color:var(--gold); font-weight:700;">[${FRANCHISE_LABELS[it.franchise]}]</small>` : ''}${watched ? ' <span class="chrono-watched-badge">Vu</span>' : ''}${onPlex ? ' <span class="chrono-plex-badge">▶ Plex</span>' : ''}${onWatch ? ' <span class="chrono-watch-badge">Où voir</span>' : ''}</h4>
         <span>${it.type} · ${it.year} · ${it.saga}</span>
       </div>
       <div class="chrono-when">${it.chronoNote}</div>

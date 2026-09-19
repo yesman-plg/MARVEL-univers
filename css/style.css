@@ -399,7 +399,8 @@ body {
   .card-info { padding: 8px 8px 10px; }
   .card-info h3 { font-size: 0.8rem; line-height: 1.2; }
   .card-info .meta { font-size: 0.68rem; }
-  .badge, .watched-badge { font-size: 0.6rem; padding: 2px 6px; }
+  .badge, .watched-badge, .watch-badge { font-size: 0.6rem; padding: 2px 6px; }
+  .watch-btn { font-size: 0.85rem; padding: 9px 16px; }
 }
 
 /* --- Personnages : liens croisés fiche <-> fiche --- */
@@ -452,6 +453,61 @@ body {
   border-radius: 12px;
   text-transform: uppercase;
   letter-spacing: .5px;
+}
+
+/* --- Boutons « où regarder » (titres absents de Plex) --- */
+.watch-btn-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.watch-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 800;
+  font-size: 0.95rem;
+  padding: 10px 20px;
+  border-radius: 24px;
+  text-decoration: none;
+  border: 1px solid transparent;
+  transition: background .15s, border-color .15s, color .15s;
+}
+.watch-btn-justwatch { background: var(--red); color: #fff; }
+.watch-btn-justwatch:hover { background: var(--red-dark); }
+.watch-btn-movix {
+  background: transparent;
+  border-color: var(--border);
+  color: var(--text-dim);
+}
+.watch-btn-movix:hover { border-color: var(--red); color: var(--red); }
+.watch-badge {
+  position: absolute;
+  bottom: 6px;
+  left: 6px;
+  background: rgba(0, 0, 0, 0.72);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 12px;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+}
+.chrono-watch-badge {
+  display: inline-block;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  font-size: 0.65rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 10px;
+  text-transform: uppercase;
+  vertical-align: middle;
+  margin-left: 6px;
 }
 
 /* --- Casting (photo acteur + rôle + autres apparitions) --- */
