@@ -7,9 +7,11 @@
 // par scripts/sync_plex_library.py, donc rien n'est écrasé au prochain sync.
 //
 // /!\ Movix change régulièrement de domaine pour contourner les blocages
-// (movix.zip, .world, .run, .sbs, .cfd, .surf, .it.com...). Quand le bouton ne
+// (movix.men, .zip, .world, .run, .sbs, .cfd, .surf...). Quand le bouton ne
 // répond plus, il suffit de corriger la ligne `url` ci-dessous, rien d'autre.
-// Format de recherche vérifié le 19/09/2026 : /search/<titre encodé>.
+// Attention : le format de recherche dépend du domaine. movix.men (actuel) attend
+// /search?q=<titre encodé> ; d'anciens builds comme movix.zip attendaient
+// /search/<titre encodé>. Vérifié le 19/09/2026.
 // Le domaine peut aussi être filtré par le DNS du FAI : c'est pour ça que
 // JustWatch (légal, domaine stable) est le bouton principal.
 // ============================================================================
@@ -20,7 +22,7 @@ const SHOW_WATCH_BADGES = true;
 
 const WATCH_PROVIDERS = [
   { key: 'justwatch', label: '🔎 Où regarder ?', url: 'https://www.justwatch.com/fr/recherche?q={q}' },
-  { key: 'movix',     label: '▶ Movix',          url: 'https://movix.zip/search/{q}' },
+  { key: 'movix',     label: '▶ Movix',          url: 'https://movix.men/search?q={q}' },
 ];
 
 // "Daredevil (Saison 1)" -> "Daredevil" : le suffixe entre parenthèses fausse
