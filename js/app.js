@@ -167,9 +167,6 @@ function renderAccueil() {
   app.innerHTML = `
     <section class="hero">
       <h1>L'univers Marvel</h1>
-      <p>Pas l'histoire de la maison d'édition, mais celle qui se déroule <em>dans</em> les films et séries :
-      des origines cosmiques de l'univers jusqu'aux événements les plus récents du Marvel Cinematic Universe,
-      voici la chronologie des faits tels qu'ils sont racontés à l'écran.</p>
     </section>
 
     <div class="timeline-block">
