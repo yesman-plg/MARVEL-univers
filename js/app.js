@@ -167,72 +167,95 @@ function renderAccueil() {
   app.innerHTML = `
     <section class="hero">
       <h1>L'univers Marvel</h1>
-      <p>De ses origines en petit éditeur de comics à la plus grande machine à franchises du cinéma mondial :
-      voici l'histoire de Marvel, en résumé, et un guide de tout ce qu'il y a à regarder.</p>
+      <p>Pas l'histoire de la maison d'édition, mais celle qui se déroule <em>dans</em> les films et séries :
+      des origines cosmiques de l'univers jusqu'aux événements les plus récents du Marvel Cinematic Universe,
+      voici la chronologie des faits tels qu'ils sont racontés à l'écran.</p>
     </section>
 
     <div class="timeline-block">
-      <div class="era">1939 – 1961 · Les débuts (Timely / Atlas Comics)</div>
-      <h2>Naissance d'un éditeur</h2>
-      <p>Marvel naît en 1939 sous le nom de <strong>Timely Comics</strong>, fondé par Martin Goodman. On y voit apparaître
-      les premières versions de la Torche Humaine et de Namor. Après-guerre, l'éditeur devient <strong>Atlas Comics</strong>
-      dans les années 1950 et publie surtout des comics d'horreur, de western et de romance, le genre super-héros
-      étant tombé en désuétude.</p>
+      <div class="era">Aux origines · Avant l'humanité</div>
+      <h2>Les Célestes, le Big Bang et la naissance d'Asgard</h2>
+      <p>Bien avant l'apparition de l'humanité, les <strong>Célestes</strong> façonnent des mondes et sèment la vie,
+      créant au passage les <strong>Eternels</strong> pour protéger les civilisations naissantes des Déviants.
+      À la même époque se forment les <strong>Pierres d'Infinité</strong>, six fragments de puissance née avant le
+      Big Bang, et le royaume d'<strong>Asgard</strong>, où Odin unifie les Neuf Royaumes après avoir vaincu les
+      Géants des Glaces en 965.</p>
     </div>
 
     <div class="timeline-block">
-      <div class="era">1961 – 1970 · L'Ère d'argent</div>
-      <h2>Stan Lee, Jack Kirby et la naissance des Quatre Fantastiques</h2>
-      <p>En 1961, Stan Lee, Jack Kirby et Steve Ditko révolutionnent le genre avec des héros faillibles et humains :
-      les <strong>Fantastic Four</strong> (1961), <strong>Hulk</strong>, <strong>Thor</strong>, <strong>Spider-Man</strong>,
-      <strong>Iron Man</strong>, les <strong>X-Men</strong> et les <strong>Avengers</strong> voient tous le jour entre 1961
-      et 1963. L'éditeur prend officiellement le nom de <strong>Marvel Comics</strong> en 1963.</p>
+      <div class="era">Antiquité – XIXe siècle</div>
+      <h2>Ego, les premiers Gardiens et les racines d'Hydra</h2>
+      <p>Sur Terre, l'entité cosmique <strong>Ego</strong> tente pendant des millénaires de coloniser d'autres mondes.
+      En 1901, dans les montagnes d'Autriche, l'organisation occulte <strong>Hydra</strong> découvre un <strong>Tesseract</strong>
+      contenant la Pierre de l'Espace, posant les bases du conflit qui ressurgira quarante ans plus tard.</p>
     </div>
 
     <div class="timeline-block">
-      <div class="era">1990 – 2005 · Crise et ventes de droits</div>
-      <h2>La quasi-faillite et la naissance des franchises séparées</h2>
-      <p>Marvel frôle la faillite en 1996 et, pour survivre, vend les droits cinéma de plusieurs de ses personnages phares :
-      les <strong>X-Men</strong> et <strong>Fantastic Four</strong> à la 20th Century Fox, <strong>Spider-Man</strong> à
-      Sony Pictures, <strong>Hulk</strong> à Universal. C'est cette dispersion des droits qui explique pourquoi ces héros
-      ont longtemps vécu dans des films totalement séparés de « l'univers Marvel » du cinéma.</p>
+      <div class="era">1940 – 1945 · La Seconde Guerre mondiale</div>
+      <h2>Le Captain America original et la chute d'Hydra</h2>
+      <p>Steve Rogers, chétif volontaire, devient <strong>Captain America</strong> grâce au sérum du Dr Erskine.
+      Avec les Howling Commandos, il affronte <strong>Johann Schmidt / Crâne Rouge</strong>, à la tête d'une Hydra
+      infiltrée dans les rangs nazis. En 1945, Rogers s'écrase dans l'Arctique avec un avion chargé d'armes de
+      destruction et reste figé dans la glace pendant près de 70 ans.</p>
     </div>
 
     <div class="timeline-block">
-      <div class="era">2005 – 2009 · Marvel Studios voit le jour</div>
-      <h2>Le pari du studio indépendant</h2>
-      <p>En 2005, Marvel crée son propre studio de production et hypothèque ses personnages restants pour financer
-      ses films en indépendant. <strong>Iron Man</strong> sort en 2008, marquant la naissance officielle du
-      <strong>Marvel Cinematic Universe (MCU)</strong>. En 2009, <strong>Disney rachète Marvel Entertainment</strong>
-      pour 4 milliards de dollars.</p>
+      <div class="era">1949 – 1995 · La Guerre froide et Captain Marvel</div>
+      <h2>Le S.H.I.E.L.D., Howard Stark et Carol Danvers</h2>
+      <p>Peggy Carter et Howard Stark fondent le <strong>S.H.I.E.L.D.</strong> en 1949, sans savoir qu'Hydra continue
+      d'y survivre en secret. En 1995, l'agente de l'US Air Force <strong>Carol Danvers</strong> devient
+      <strong>Captain Marvel</strong> après un accident impliquant le moteur d'un vaisseau kree, et Nick Fury,
+      encore jeune agent, découvre l'existence des extraterrestres.</p>
     </div>
 
     <div class="timeline-block">
-      <div class="era">2013 – 2019 · Netflix, Sony et l'expansion</div>
-      <h2>Multiplication des univers</h2>
-      <p>Marvel Television lance un univers de séries sombres sur Netflix (<strong>Daredevil</strong>, <strong>Jessica Jones</strong>,
-      <strong>Luke Cage</strong>, <strong>Iron Fist</strong>) culminant avec le crossover <strong>The Defenders</strong> (2017).
-      De son côté, Sony continue seule avec Spider-Man puis lance son propre « <strong>Sony's Spider-Man Universe</strong> »
-      centré sur <strong>Venom</strong>, sans lien direct avec le MCU.</p>
+      <div class="era">2008 – 2012 · L'émergence des super-héros</div>
+      <h2>Iron Man, Hulk, Thor et l'Incident de New York</h2>
+      <p>Tony Stark endosse l'armure d'<strong>Iron Man</strong> en 2010, tandis que Bruce Banner fuit le monde en tant
+      que <strong>Hulk</strong> et que <strong>Thor</strong> est banni sur Terre par Odin. Nick Fury lance
+      l'<strong>Initiative Avengers</strong>. En 2012, <strong>Loki</strong> ouvre un portail au-dessus de Manhattan
+      avec le sceptre contenant la Pierre de l'Esprit : c'est la <strong>Bataille de New York</strong>, première
+      sortie officielle des <strong>Avengers</strong> réunis et révélation du monde des super-héros au grand public.</p>
     </div>
 
     <div class="timeline-block">
-      <div class="era">2019 – aujourd'hui · Réunification</div>
-      <h2>Disney rachète la Fox, le multivers ouvre toutes les portes</h2>
-      <p>En 2019, <strong>Disney rachète 21st Century Fox</strong>, récupérant les droits des <strong>X-Men</strong> et des
-      <strong>Fantastic Four</strong>. Le MCU explore alors le concept de <strong>multivers</strong>
-      (Loki, Spider-Man: No Way Home, Doctor Strange 2) pour finalement réunir officiellement l'ancien univers X-Men
-      Fox et le MCU dans <strong>Deadpool & Wolverine</strong> (2024), avant l'arrivée des Quatre Fantastiques
-      dans le MCU en 2025.</p>
+      <div class="era">2012 – 2016 · Ultron et la fracture des Avengers</div>
+      <h2>L'IA d'Ultron, les Accords de Sokovie et Civil War</h2>
+      <p>En 2015, Tony Stark et Bruce Banner créent accidentellement <strong>Ultron</strong>, une intelligence
+      artificielle qui manque de provoquer l'extinction de l'humanité ; les Avengers l'arrêtent à Sokovie et créent
+      <strong>Vision</strong>. Les dégâts collatéraux répétés mènent aux <strong>Accords de Sokovie</strong> en 2016,
+      qui divisent l'équipe entre partisans de Tony Stark et de <strong>Captain America</strong>, désormais fugitif
+      aux côtés de son ami d'enfance <strong>Bucky Barnes</strong>.</p>
+    </div>
+
+    <div class="timeline-block">
+      <div class="era">2018 – 2023 · Thanos, le Snap et le Blip</div>
+      <h2>La Saga de l'Infini : Infinity War et Endgame</h2>
+      <p>Le Titan <strong>Thanos</strong> réunit les six <strong>Pierres d'Infinité</strong> et, d'un claquement de
+      doigts en 2018, efface la moitié de toute vie dans l'univers — le <strong>Snap</strong>. Les survivants,
+      dont il ne reste qu'une poignée d'Avengers, vivent cinq années de deuil (le <strong>Blip</strong>) avant de
+      voyager dans le temps pour récupérer les Pierres et annuler le Snap en 2023. Tony Stark meurt en sacrifiant
+      sa vie pour vaincre définitivement Thanos.</p>
+    </div>
+
+    <div class="timeline-block">
+      <div class="era">2023 – aujourd'hui · La Saga du Multivers</div>
+      <h2>Variants, incursions et l'ouverture du multivers</h2>
+      <p>Une variante de <strong>Loki</strong> ayant survécu à sa propre mort révèle l'existence de la
+      <strong>TVA (Autorité de Variance Temporelle)</strong> et d'un multivers jusque-là contenu par
+      <strong>Celui qui Demeure</strong>. Sa disparition libère d'innombrables branches temporelles, permettant à des
+      versions d'autres univers (dont <strong>Spider-Man</strong> et les <strong>X-Men</strong> d'univers parallèles)
+      de croiser le MCU. En toile de fond se profile désormais la menace de <strong>Kang</strong> et de ses variants,
+      point de départ de la prochaine grande guerre multiversique.</p>
     </div>
 
     <div class="timeline-block">
       <div class="era">Pour la suite</div>
-      <h2>Quatre univers, un même site</h2>
-      <p>Ce site recense quatre grandes continuités : le <strong>MCU</strong> officiel, la saga <strong>X-Men</strong>
-      de la Fox, l'univers <strong>Spider-Man</strong> de Sony (trilogies Raimi/Amazing + Venom), et les
-      <strong>séries Netflix</strong>. Direction le <a href="#/catalogue">catalogue</a> pour parcourir chaque fiche,
-      ou la page <a href="#/chronologie">ordre chronologique</a> pour savoir dans quel ordre tout regarder.</p>
+      <h2>Suivre le fil de l'histoire</h2>
+      <p>Cette chronologie couvre les grands événements du <strong>MCU</strong> tels qu'ils se déroulent dans la fiction.
+      Pour voir dans quel ordre regarder chaque film et série qui les racontent, direction la page
+      <a href="#/chronologie">ordre chronologique</a>, ou le <a href="#/catalogue">catalogue</a> pour parcourir
+      toutes les fiches, y compris celles des univers X-Men (Fox), Spider-Man (Sony) et des séries Netflix.</p>
     </div>
   `;
 }
