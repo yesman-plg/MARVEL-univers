@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Maquette 7 — Spirale du temps</title>
+<style>
+  :root { --red:#ed1d24; --gold:#d4af37; --bg:#09090b; --text:#eee; --dim:#a3a3ab; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--text); font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif; overflow-x:hidden; }
+  .back { position:fixed; top:14px; left:16px; z-index:30; color:var(--dim); text-decoration:none; font-size:.85rem; background:#000a; padding:6px 10px; border-radius:6px; }
+  #spacer { height:900vh; }
+  .stage { position:fixed; inset:0; perspective:1400px; perspective-origin:50% 40%; overflow:hidden;
+           background:radial-gradient(ellipse at 50% 60%, #2a0507 0%, transparent 60%); }
+  .helix { position:absolute; left:50%; top:42%; width:0; height:0; perspective:1400px; perspective-origin:0 0; }
+  .axis { position:absolute; left:calc(50% - 2px); top:0; width:4px; height:100%; background:linear-gradient(transparent, var(--red) 20%, var(--gold) 80%, transparent);
+          box-shadow:0 0 30px var(--red), 0 0 80px #ed1d2466; }
+  .item { position:absolute; left:0; top:0; width:0; height:0; will-change:transform; }
+  .card { position:absolute; left:-170px; top:-120px; width:340px; background:#141418; border:1px solid #ffffff1f; border-radius:14px; overflow:hidden; cursor:pointer;
+          backface-visibility:hidden; transition:box-shadow .3s, border-color .3s; }
+  .card .img { height:150px; background-size:cover; background-position:center 25%; }
+  .card .body { padding:14px 16px 16px; }
+  .card .era { color:var(--c); font-size:.7rem; font-weight:800; letter-spacing:2px; text-transform:uppercase; }
+  .card h2 { font-size:1.15rem; margin:4px 0 6px; }
+  .card p { margin:0; font-size:.85rem; line-height:1.5; color:#cfcfd4; }
+  .card.on { border-color:var(--c); box-shadow:0 0 60px -10px var(--c); }
+  .card:focus-visible { outline:2px solid var(--gold); outline-offset:3px; }
+  .tick { position:absolute; left:-390px; top:-14px; width:200px; height:2px; background:linear-gradient(90deg, var(--c), transparent); }
+  .tick span { position:absolute; left:0; top:-26px; font-weight:900; font-size:1.4rem; color:var(--c); }
+  .hud { position:fixed; left:50%; bottom:5vh; transform:translateX(-50%); z-index:10; text-align:center; pointer-events:none; }
+  .hud .y { font-size:clamp(2.4rem,7vw,4.5rem); font-weight:900; color:transparent; -webkit-text-stroke:1.5px var(--gold); font-variant-numeric:tabular-nums; line-height:1; }
+  .hud small { color:var(--dim); letter-spacing:3px; text-transform:uppercase; font-size:.7rem; }
+  .intro { position:fixed; top:12vh; left:0; right:0; text-align:center; z-index:5; pointer-events:none; padding:0 16px; }
+  .intro h1 { margin:0; font-size:clamp(2.2rem,6vw,4.4rem); font-weight:900; font-style:italic; }
+  .intro h1 b { color:var(--red); }
+  .intro p { color:var(--dim); }
+  @media (max-width:760px) { .card { width:260px; left:-130px; } .card .img { height:110px; } .tick { display:none; } }
+</style>
+</head>
+<body>
+<a class="back" href="index.html">← Maquettes</a>
+<div class="stage"><div class="axis"></div><div class="helix" id="helix"></div></div>
+<div class="intro" id="intro"><h1>La <b>spirale</b> du temps</h1><p>Faites défiler : la spirale tourne et descend d'une époque à l'autre.</p></div>
+<div class="hud"><div class="y" id="y">∞</div><small id="era">Aux origines</small></div>
+<div id="spacer"></div>
+
+<script src="events.js"></script>
+<script src="detail.js"></script>
+<script>
+const helix = document.getElementById('helix');
+const N = TIMELINE.length, STEP_A = 72, STEP_Y = 260;
+const R = () => innerWidth < 760 ? 210 : 420;
+const items = TIMELINE.map((ev, i) => {
+  const it = document.createElement('div'); it.className = 'item'; it.style.setProperty('--c', ev.color);
+  it.innerHTML = `<div class="tick"><span>${ev.year}</span></div>
+    <article class="card" tabindex="0" role="button" aria-label="Déployer ${ev.title}">
+      <div class="img" style="background-image:url('${ev.image}')"></div>
+      <div class="body"><div class="era">${ev.era} · ${ev.date}</div><h2>${ev.title}</h2><p>${ev.text}</p></div>
+    </article>`;
+  helix.appendChild(it);
+  const card = it.querySelector('.card');
+  card.addEventListener('click', () => Detail.open(i, card));
+  card.addEventListener('keydown', e => { if (e.key === 'Enter') Detail.open(i, card); });
+  return { it, card };
+});
+
+let cur = 0, target = 0, shown = -1;
+addEventListener('scroll', () => { target = scrollY / (document.documentElement.scrollHeight - innerHeight); }, { passive: true });
+(function loop() {
+  cur += (target - cur) * .08;
+  const pos = cur * (N - 1);                              // position flottante sur la spirale
+  const idx = Math.round(pos), r = R();
+  // chaque carte est placée sur la spirale par son propre transform (pas de 3D imbriquée)
+  items.forEach(({ it, card }, i) => {
+    const k = i - pos, a = k * STEP_A, front = Math.cos(a * Math.PI / 180);
+    it.style.transform = `translateY(${k * STEP_Y}px) rotateY(${a}deg) translateZ(${r}px)`;
+    it.style.zIndex = Math.round(front * 100) + 100;
+    it.style.opacity = front < 0 ? 0 : Math.max(.15, 1 - Math.abs(k) * .55);
+    it.style.visibility = front < 0 ? 'hidden' : 'visible';
+    card.classList.toggle('on', i === idx);
+  });
+  if (idx !== shown) { shown = idx; document.getElementById('y').textContent = TIMELINE[idx].year; document.getElementById('era').textContent = TIMELINE[idx].era; }
+  document.getElementById('intro').style.opacity = Math.max(0, 1 - cur * 15);
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>

@@ -45,6 +45,9 @@
     .rail .dot span { display:none; }
     .rail { left:16px; right:16px; }
   }
+  .poster-3d .frame { cursor:pointer; }
+  .more { display:inline-flex; align-items:center; gap:6px; margin-top:14px; background:none; border:1px solid var(--c, #ed1d24); color:var(--c, #ed1d24); border-radius:20px; padding:6px 14px; font-size:.8rem; font-weight:700; cursor:pointer; letter-spacing:.5px; transition:background .2s, color .2s; }
+  .more:hover, .more:focus-visible { background:var(--c, #ed1d24); color:#000; outline:none; }
 </style>
 </head>
 <body>
@@ -63,6 +66,7 @@
 <section class="outro"><p>Fin de la frise — <a style="color:var(--red)" href="../index.html#/catalogue">explorer le catalogue</a></p></section>
 
 <script src="events.js"></script>
+<script src="detail.js"></script>
 <script>
 const track = document.getElementById('track'), rail = document.getElementById('rail');
 const N = TIMELINE.length;
@@ -78,8 +82,12 @@ TIMELINE.forEach((ev, i) => {
       <h2>${ev.title}</h2>
       <p>${ev.text}</p>
       <div class="tags">${ev.tags.map(t => `<span>${t}</span>`).join('')}</div>
+      <button class="more">Déployer la carte +</button>
     </div>`;
   track.appendChild(p);
+  const frameEl = p.querySelector('.frame');
+  frameEl.addEventListener('click', () => Detail.open(i, frameEl));
+  p.querySelector('.more').addEventListener('click', () => Detail.open(i, frameEl));
   const d = document.createElement('div');
   d.className = 'dot'; d.style.left = (i / (N - 1) * 100) + '%'; d.style.setProperty('--c', ev.color);
   d.innerHTML = `<span>${ev.date}</span>`;

@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Maquette 5 — Le Pont vers la Cité</title>
+<style>
+  :root { --red:#ed1d24; --gold:#d4af37; --bg:#07070a; --text:#eee; --dim:#a3a3ab; }
+  * { box-sizing:border-box; }
+  html, body { margin:0; background:var(--bg); color:var(--text); font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif; }
+  canvas#gl { position:fixed; inset:0; width:100vw; height:100vh; display:block; }
+  .back { position:fixed; top:14px; left:16px; z-index:30; color:var(--dim); text-decoration:none; font-size:.85rem; background:#000a; padding:6px 10px; border-radius:6px; }
+  #spacer { height:1100vh; }
+
+  .title { position:fixed; inset:0; z-index:5; pointer-events:none; display:flex; flex-direction:column; align-items:center; justify-content:flex-start; padding-top:16vh; text-align:center; }
+  .title small { color:var(--gold); letter-spacing:6px; text-transform:uppercase; font-size:.75rem; font-weight:700; }
+  .title h1 { margin:10px 0 8px; font-size:clamp(2.4rem,7vw,5.4rem); font-weight:900; font-style:italic; text-shadow:0 0 40px #ed1d2488; }
+  .title h1 b { color:var(--red); }
+  .title p { color:var(--dim); max-width:520px; padding:0 16px; }
+
+  .overlay { pointer-events:none; position:fixed; left:5vw; bottom:8vh; width:min(430px, calc(100vw - 32px)); z-index:10; }
+  .info { pointer-events:auto; cursor:pointer; background:linear-gradient(160deg,#1a130b,#0c0c10); backdrop-filter:blur(10px); border:1px solid #d4af3744; border-radius:14px; padding:20px 22px; position:relative; overflow:hidden;
+          transition:opacity .5s, transform .5s; }
+  .info::before { content:''; position:absolute; inset:0 auto 0 0; width:4px; background:linear-gradient(var(--red),var(--gold)); }
+  .info.hide { opacity:0; transform:translateY(30px); pointer-events:none; }
+  .info .era { color:var(--gold); font-weight:800; letter-spacing:2px; font-size:.72rem; text-transform:uppercase; }
+  .info h2 { margin:6px 0 8px; font-size:1.55rem; }
+  .info p { margin:0; color:#cfcfd4; line-height:1.55; font-size:.93rem; }
+  .more { display:inline-flex; gap:6px; margin-top:14px; background:none; border:1px solid var(--gold); color:var(--gold); border-radius:20px; padding:6px 14px; font-size:.8rem; font-weight:700; cursor:pointer; }
+  .more:hover, .more:focus-visible { background:var(--gold); color:#000; outline:none; }
+
+  /* boussole de progression : distance jusqu'à la cité */
+  .meter { position:fixed; top:18px; right:18px; z-index:10; text-align:right; }
+  .meter .lab { font-size:.65rem; letter-spacing:3px; color:var(--dim); text-transform:uppercase; }
+  .meter .val { font-size:1.6rem; font-weight:900; color:var(--gold); font-variant-numeric:tabular-nums; }
+  .runes { position:fixed; right:18px; top:50%; transform:translateY(-50%); z-index:10; display:flex; flex-direction:column; gap:12px; }
+  .runes button { width:12px; height:12px; transform:rotate(45deg); border:1.5px solid #d4af3788; background:transparent; padding:0; cursor:pointer; transition:.3s; }
+  .runes button.done { background:#d4af3766; }
+  .runes button.on { background:var(--red); border-color:var(--red); box-shadow:0 0 12px var(--red); transform:rotate(45deg) scale(1.4); }
+  .runes button:focus-visible { outline:2px solid var(--gold); outline-offset:3px; }
+  @media (max-width:760px) { .overlay { left:16px; bottom:16px; } .runes { display:none; } .title { padding-top:12vh; } }
+</style>
+<script type="importmap">{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }</script>
+</head>
+<body>
+<a class="back" href="index.html">← Maquettes</a>
+<canvas id="gl"></canvas>
+<div class="title" id="title">
+  <small>Chronologie Marvel</small>
+  <h1>Le Pont vers la <b>Cité</b></h1>
+  <p>Avancez sur le pont : chaque monolithe est une époque. Cliquez dessus pour déployer son histoire.</p>
+</div>
+<div class="meter"><div class="lab">Époque</div><div class="val" id="val">∞</div></div>
+<nav class="runes" id="runes"></nav>
+<div class="overlay"><div class="info hide" id="info"></div></div>
+<div id="spacer"></div>
+
+<script src="events.js"></script>
+<script src="detail.js"></script>
+<script type="module">
+import * as THREE from 'three';
+
+const N = TIMELINE.length, SP = 34, L = (N + 1) * SP + 40, CITY_Z = -L - 70;
+const canvas = document.getElementById('gl');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+const scene = new THREE.Scene();
+scene.fog = new THREE.FogExp2(0x0b0608, 0.0085);
+const camera = new THREE.PerspectiveCamera(62, 1, 0.1, 900);
+
+// --- Ciel : dégradé rouge sombre à l'horizon ---------------------------------
+const sky = new THREE.Mesh(new THREE.SphereGeometry(600, 32, 16), new THREE.ShaderMaterial({
+  side: THREE.BackSide, depthWrite: false, fog: false,
+  uniforms: { t: { value: 0 } },
+  vertexShader: `varying vec3 vP; void main(){ vP = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.); }`,
+  fragmentShader: `varying vec3 vP; uniform float t;
+    void main(){ float h = vP.y;
+      vec3 top = vec3(.02,.015,.03), mid = vec3(.16,.02,.03), hor = vec3(.55,.18,.05);
+      vec3 c = mix(hor, mid, smoothstep(-.02,.12,h)); c = mix(c, top, smoothstep(.1,.6,h));
+      // halo derrière la cité (vers -z)
+      float g = pow(max(0., dot(vP, normalize(vec3(0.,.05,-1.)))), 40.);
+      c += vec3(1.,.7,.25) * g * .9;
+      gl_FragColor = vec4(c,1.); }`
+}));
+scene.add(sky);
+
+// étoiles
+{
+  const n = 3000, a = new Float32Array(n * 3);
+  for (let i = 0; i < n; i++) {
+    const th = Math.random() * Math.PI * 2, ph = Math.acos(Math.random() * .9 + .1), r = 500;
+    a.set([r * Math.sin(ph) * Math.cos(th), r * Math.cos(ph), r * Math.sin(ph) * Math.sin(th)], i * 3);
+  }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(a, 3));
+  scene.add(new THREE.Points(g, new THREE.PointsMaterial({ size: 1.2, color: 0xffe8c0, fog: false, transparent: true, opacity: .8 })));
+}
+
+// --- Le pont : surface cristalline animée rouge → or -------------------------
+const bridgeUniforms = THREE.UniformsUtils.merge([THREE.UniformsLib.fog, { t: { value: 0 }, len: { value: L } }]);
+function bridgeMaterial(alpha) {
+  return new THREE.ShaderMaterial({
+    fog: true, transparent: alpha < 1, depthWrite: alpha >= 1,
+    uniforms: bridgeUniforms,
+    vertexShader: `
+      varying vec2 vUv;
+      #include <fog_pars_vertex>
+      void main() {
+        vUv = uv;
+        vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+        gl_Position = projectionMatrix * mvPosition;
+        #include <fog_vertex>
+      }`,
+    fragmentShader: `
+      varying vec2 vUv;
+      uniform float t;
+      uniform float len;
+      #include <fog_pars_fragment>
+      float h(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5); }
+      void main() {
+        float x = vUv.x, y = vUv.y * len;
+        vec3 red = vec3(.93, .11, .14), gold = vec3(.83, .69, .22);
+        vec2 cell = floor(vec2(x * 10., y * 1.4));                 // facettes de cristal
+        float tw = .5 + .5 * sin(t * 2. + h(cell) * 40.);
+        vec3 c = mix(red, gold, smoothstep(.15, .85, x + .25 * sin(y * .08 + t * .6)));
+        float pulse = pow(.5 + .5 * sin(y * .35 - t * 5.), 10.);   // ondes qui filent vers la cité
+        float edge = smoothstep(.4, .5, abs(x - .5));
+        float lum = .2 + .18 * tw * h(cell + 3.) + .9 * pulse + 1.6 * edge;
+        gl_FragColor = vec4(c * lum, ${alpha.toFixed(2)});
+        #include <fog_fragment>
+      }`
+  });
+}
+const bridgeMat = bridgeMaterial(1);
+const bridge = new THREE.Mesh(new THREE.PlaneGeometry(7, L, 1, 1), bridgeMat);
+bridge.rotation.x = -Math.PI / 2; bridge.position.z = -L / 2 + 10; scene.add(bridge);
+// reflet doux sous le pont
+const refl = new THREE.Mesh(bridge.geometry, bridgeMaterial(.22));
+refl.rotation.x = -Math.PI / 2; refl.position.set(0, -1.6, bridge.position.z); refl.scale.set(1.6, 1, 1); scene.add(refl);
+// rambardes lumineuses
+[-3.5, 3.5].forEach(x => {
+  const rail = new THREE.Mesh(new THREE.BoxGeometry(.05, .05, L), new THREE.MeshBasicMaterial({ color: 0xd4af37 }));
+  rail.position.set(x, .9, -L / 2 + 10); scene.add(rail);
+});
+
+// particules d'énergie qui montent du vide
+const motes = (() => {
+  const n = 900, a = new Float32Array(n * 3);
+  for (let i = 0; i < n; i++) a.set([(Math.random() - .5) * 120, Math.random() * 30 - 12, 20 - Math.random() * (L + 120)], i * 3);
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(a, 3));
+  const p = new THREE.Points(g, new THREE.PointsMaterial({ size: .25, color: 0xff6a3a, transparent: true, opacity: .8, blending: THREE.AdditiveBlending, depthWrite: false }));
+  scene.add(p); return p;
+})();
+
+// --- La cité dorée au bout du pont --------------------------------------------
+scene.add(new THREE.AmbientLight(0xffffff, .35));
+const sun = new THREE.DirectionalLight(0xffc27a, 2.2); sun.position.set(-40, 60, CITY_Z + 160); scene.add(sun);
+const cityLight = new THREE.PointLight(0xffb347, 600, 260, 1.6); cityLight.position.set(0, 40, CITY_Z + 40); scene.add(cityLight);
+const gold = new THREE.MeshStandardMaterial({ color: 0xd4af37, metalness: .85, roughness: .28, emissive: 0x4a2a00, emissiveIntensity: .6 });
+const goldDark = new THREE.MeshStandardMaterial({ color: 0x8a6a1e, metalness: .8, roughness: .4, emissive: 0x2a1200 });
+const city = new THREE.Group(); city.position.set(0, -6, CITY_Z); scene.add(city);
+// palais central
+const spire = new THREE.Mesh(new THREE.CylinderGeometry(2.2, 9, 70, 8), gold); spire.position.y = 35; city.add(spire);
+const tip = new THREE.Mesh(new THREE.ConeGeometry(2.2, 30, 8), gold); tip.position.y = 85; city.add(tip);
+for (let k = 0; k < 6; k++) {                                       // tours satellites du palais
+  const a = k / 6 * Math.PI * 2, t = new THREE.Mesh(new THREE.CylinderGeometry(1, 3, 42, 6), gold);
+  t.position.set(Math.cos(a) * 12, 21, Math.sin(a) * 12); city.add(t);
+  const c = new THREE.Mesh(new THREE.ConeGeometry(1, 14, 6), gold); c.position.set(Math.cos(a) * 12, 49, Math.sin(a) * 12); city.add(c);
+}
+let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+for (let k = 0; k < 120; k++) {                                     // la ville autour
+  const a = rnd() * Math.PI * 2, r = 20 + rnd() * 80, hgt = 6 + rnd() * 34 * (1 - r / 110);
+  const w = 2 + rnd() * 4, m = rnd() > .4 ? gold : goldDark;
+  const b = new THREE.Mesh(new THREE.BoxGeometry(w, hgt, w), m);
+  b.position.set(Math.cos(a) * r, hgt / 2, Math.sin(a) * r - 10); b.rotation.y = rnd() * Math.PI; city.add(b);
+  if (rnd() > .5) { const c = new THREE.Mesh(new THREE.ConeGeometry(w * .6, hgt * .35, 4), m); c.position.set(b.position.x, hgt + hgt * .17, b.position.z); city.add(c); }
+}
+// halo derrière la cité
+const haloTex = (() => {
+  const c = document.createElement('canvas'); c.width = c.height = 256; const g = c.getContext('2d');
+  const gr = g.createRadialGradient(128, 128, 0, 128, 128, 128);
+  gr.addColorStop(0, 'rgba(255,220,140,.9)'); gr.addColorStop(.3, 'rgba(237,29,36,.35)'); gr.addColorStop(1, 'rgba(0,0,0,0)');
+  g.fillStyle = gr; g.fillRect(0, 0, 256, 256); return new THREE.CanvasTexture(c);
+})();
+const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: haloTex, blending: THREE.AdditiveBlending, depthWrite: false, fog: false, transparent: true }));
+halo.scale.set(260, 260, 1); halo.position.set(0, 40, CITY_Z - 60); scene.add(halo);
+
+// --- Monolithes : une époque chacun --------------------------------------------
+const loader = new THREE.TextureLoader();
+const narrow = innerWidth < innerHeight;
+function yearTex(txt, color) {
+  const c = document.createElement('canvas'); c.width = 512; c.height = 160; const g = c.getContext('2d');
+  g.font = '900 120px Segoe UI, Roboto, Arial'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.shadowColor = color; g.shadowBlur = 24; g.fillStyle = '#ffe7a8'; g.fillText(txt, 256, 86);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; return t;
+}
+const stations = TIMELINE.map((ev, i) => {
+  const side = i % 2 ? -1 : 1, z = -(i + 1) * SP;
+  const g = new THREE.Group(); g.position.set(side * (narrow ? 5.2 : 7.5), 0, z); g.rotation.y = -side * .45; scene.add(g);
+  // socle + pierre
+  const base = new THREE.Mesh(new THREE.BoxGeometry(5.6, .6, 1.6), goldDark); base.position.y = -.3; g.add(base);
+  const stone = new THREE.Mesh(new THREE.BoxGeometry(5, 8.2, .6), new THREE.MeshStandardMaterial({ color: 0x15151a, metalness: .4, roughness: .5 }));
+  stone.position.y = 4.4; g.add(stone);
+  const frame = new THREE.Mesh(new THREE.BoxGeometry(5.3, 8.5, .45), gold); frame.position.set(0, 4.4, -.1); g.add(frame);
+  const tex = loader.load(ev.image); tex.colorSpace = THREE.SRGBColorSpace;
+  const poster = new THREE.Mesh(new THREE.PlaneGeometry(4.4, 6.6), new THREE.MeshBasicMaterial({ map: tex, toneMapped: false }));
+  poster.position.set(0, 4.6, .32); g.add(poster);
+  const yr = new THREE.Mesh(new THREE.PlaneGeometry(4, 1.25), new THREE.MeshBasicMaterial({ map: yearTex(ev.year, ev.color), transparent: true, toneMapped: false }));
+  yr.position.set(0, 9.6, 0); g.add(yr);
+  // faisceau de lumière vertical
+  const beam = new THREE.Mesh(new THREE.CylinderGeometry(.25, .9, 60, 16, 1, true), new THREE.MeshBasicMaterial({ color: new THREE.Color(ev.color), transparent: true, opacity: .12, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }));
+  beam.position.set(0, 30, -2.2); g.add(beam);
+  const lamp = new THREE.PointLight(new THREE.Color(ev.color), 40, 18, 2); lamp.position.set(0, 4, 3); g.add(lamp);
+  return { g, poster, beam, lamp, z, ev };
+});
+
+// --- HTML : carte d'info, runes, compteur ------------------------------------------
+const info = document.getElementById('info'), runes = document.getElementById('runes'), val = document.getElementById('val');
+const runeBtns = TIMELINE.map((ev, i) => {
+  const b = document.createElement('button'); b.title = ev.era + ' · ' + ev.date; b.setAttribute('aria-label', ev.era);
+  b.onclick = () => scrollTo({ top: stationScroll(i), behavior: 'smooth' });
+  runes.appendChild(b); return b;
+});
+const camZAt = p => 14 - p * (L - 10);                                  // position caméra selon la progression
+const stationScroll = i => { const p = (14 - (stations[i].z + 12)) / (L - 10); return p * (document.documentElement.scrollHeight - innerHeight); };
+let active = -1;
+info.addEventListener('click', () => { if (info.dataset.i) Detail.open(+info.dataset.i, info); });
+function showInfo(i) {
+  if (i === active) return; active = i;
+  info.classList.add('hide');
+  setTimeout(() => {
+    if (active !== i || i < 0) return;
+    const ev = TIMELINE[i];
+    info.dataset.i = i;
+    info.innerHTML = `<div class="era">${ev.era} · ${ev.date}</div><h2>${ev.title}</h2><p>${ev.text}</p><button class="more">Déployer la carte +</button>`;
+    info.classList.remove('hide');
+  }, 320);
+}
+
+// clic / survol des monolithes
+const ray = new THREE.Raycaster(), mouse = new THREE.Vector2();
+const pick = e => { mouse.set(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight) * 2 + 1); ray.setFromCamera(mouse, camera); return ray.intersectObjects(stations.map(s => s.poster))[0]; };
+canvas.addEventListener('click', e => { const h = pick(e); if (h) Detail.open(stations.findIndex(s => s.poster === h.object), null); });
+canvas.addEventListener('pointermove', e => { canvas.style.cursor = pick(e) ? 'pointer' : ''; });
+
+// --- Boucle -------------------------------------------------------------------------
+let target = 0, prog = 0;
+addEventListener('scroll', () => { target = scrollY / (document.documentElement.scrollHeight - innerHeight); }, { passive: true });
+function resize() { renderer.setSize(innerWidth, innerHeight, false); camera.aspect = innerWidth / innerHeight; camera.fov = camera.aspect < 1 ? 78 : 62; camera.updateProjectionMatrix(); }
+addEventListener('resize', resize); resize();
+const clock = new THREE.Clock(), look = new THREE.Vector3(), lookT = new THREE.Vector3();
+renderer.setAnimationLoop(() => {
+  const t = clock.getElapsedTime();
+  prog += (target - prog) * .06;
+  const z = camZAt(prog);
+  camera.position.set(Math.sin(t * .4) * .15, 1.9 + Math.sin(z * .35) * .05, z);      // pas de marche discret
+
+  // époque la plus proche devant la caméra
+  let best = -1, bd = 1e9;
+  stations.forEach((s, i) => { const d = z - s.z; if (d > 4 && d < 30 && d < bd) { bd = d; best = i; } });
+  // le regard glisse vers le monolithe actif, sinon vers la cité
+  if (best >= 0) { const s = stations[best]; lookT.set(s.g.position.x * .55, 3.2, s.z - 6); }
+  else lookT.set(0, 6, CITY_Z);
+  look.lerp(lookT, .05); camera.lookAt(look);
+
+  showInfo(best);
+  runeBtns.forEach((b, i) => { b.classList.toggle('on', i === best); b.classList.toggle('done', z < stations[i].z); });
+  val.textContent = best >= 0 ? TIMELINE[best].date : (prog > .9 ? 'Aujourd\'hui' : '∞');
+  stations.forEach((s, i) => { s.beam.material.opacity = i === best ? .28 + Math.sin(t * 3) * .06 : .1; s.lamp.intensity = i === best ? 80 : 25; });
+  bridgeMat.uniforms.t.value = t;
+  sky.material.uniforms.t.value = t;
+  motes.position.y = (t * .8) % 8;
+  city.rotation.y = Math.sin(t * .05) * .02;
+  document.getElementById('title').style.opacity = Math.max(0, 1 - prog * 22);
+  renderer.render(scene, camera);
+});
+</script>
+</body>
+</html>

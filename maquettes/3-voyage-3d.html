@@ -13,7 +13,7 @@
   #spacer { height:900vh; }   /* longueur de scroll = longueur du voyage */
 
   .overlay { position:fixed; left:5vw; bottom:9vh; width:min(440px, calc(100vw - 32px)); z-index:10; pointer-events:none; }
-  .info { background:#0b0b12cc; backdrop-filter:blur(10px); border:1px solid #ffffff1a; border-left:4px solid var(--c, var(--red)); border-radius:14px; padding:20px 22px;
+  .info { pointer-events:auto; cursor:pointer; background:#0b0b12cc; backdrop-filter:blur(10px); border:1px solid #ffffff1a; border-left:4px solid var(--c, var(--red)); border-radius:14px; padding:20px 22px;
           transition:opacity .5s, transform .5s; }
   .info.hide { opacity:0; transform:translateY(30px); }
   .info .era { color:var(--c); font-weight:800; letter-spacing:2px; font-size:.75rem; text-transform:uppercase; }
@@ -32,6 +32,8 @@
   .gauge .lbl.on { color:#fff; font-weight:700; }
   .nogl { position:fixed; inset:0; display:none; align-items:center; justify-content:center; color:var(--dim); }
   @media (max-width:760px) { .gauge .lbl { display:none; } .overlay { left:16px; bottom:16px; } }
+  .more { display:inline-flex; align-items:center; gap:6px; margin-top:14px; background:none; border:1px solid var(--c, #ed1d24); color:var(--c, #ed1d24); border-radius:20px; padding:6px 14px; font-size:.8rem; font-weight:700; cursor:pointer; letter-spacing:.5px; transition:background .2s, color .2s; }
+  .more:hover, .more:focus-visible { background:var(--c, #ed1d24); color:#000; outline:none; }
 </style>
 <script type="importmap">{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }</script>
 </head>
@@ -45,6 +47,7 @@
 <div id="spacer"></div>
 
 <script src="events.js"></script>
+<script src="detail.js"></script>
 <script type="module">
 import * as THREE from 'three';
 
@@ -119,6 +122,7 @@ const labels = TIMELINE.map((ev, i) => {
   l.style.top = ((i + 1) / (N + 1) * 100) + '%'; l.textContent = ev.date; gauge.appendChild(l); return l;
 });
 let active = -1;
+info.addEventListener('click', () => { if (active >= 0) Detail.open(active, info); });
 function showInfo(i) {
   if (i === active) return; active = i;
   info.classList.add('hide');
@@ -127,10 +131,25 @@ function showInfo(i) {
     const ev = TIMELINE[i];
     info.style.setProperty('--c', ev.color);
     info.innerHTML = `<div class="era">${ev.era} · ${ev.date}</div><h2>${ev.title}</h2><p>${ev.text}</p>
-      <div class="thumbs">${ev.thumbs.map(s => `<img src="${s}" alt="">`).join('')}</div>`;
+      <div class="thumbs">${ev.thumbs.map(s => `<img src="${s}" alt="">`).join('')}</div>
+      <button class="more">Déployer la carte +</button>`;
     if (active === i) info.classList.remove('hide');
   }, 350);
 }
+
+// clic direct sur une affiche 3D
+const ray = new THREE.Raycaster(), mouse = new THREE.Vector2();
+canvas.addEventListener('click', e => {
+  mouse.set(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
+  ray.setFromCamera(mouse, camera);
+  const hit = ray.intersectObjects(stations.filter(s => s.g.visible).map(s => s.poster))[0];
+  if (hit) Detail.open(stations.findIndex(s => s.poster === hit.object), null);
+});
+canvas.addEventListener('pointermove', e => {
+  mouse.set(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
+  ray.setFromCamera(mouse, camera);
+  canvas.style.cursor = ray.intersectObjects(stations.filter(s => s.g.visible).map(s => s.poster)).length ? 'pointer' : '';
+});
 
 // --- Boucle ------------------------------------------------------------------
 let target = 0, prog = 0;

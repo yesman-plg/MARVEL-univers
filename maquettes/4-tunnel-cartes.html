@@ -20,7 +20,7 @@
   .ceil  { top:-420px; transform:rotateX(90deg); opacity:.35; }
 
   .slide { position:absolute; transform-style:preserve-3d; }
-  .card { position:absolute; width:620px; left:-310px; top:-210px; display:grid; grid-template-columns:240px 1fr; background:#141418ee; border:1px solid #ffffff1a; border-top:3px solid var(--c);
+  .card { cursor:pointer; position:absolute; width:620px; left:-310px; top:-210px; display:grid; grid-template-columns:240px 1fr; background:#141418ee; border:1px solid #ffffff1a; border-top:3px solid var(--c);
           border-radius:14px; overflow:hidden; box-shadow:0 30px 90px -20px var(--c); }
   .card .img { background-size:cover; background-position:center; min-height:360px; }
   .card .body { padding:24px; }
@@ -43,6 +43,8 @@
     .card h2 { font-size:1.25rem; } .card p { font-size:.85rem; }
     .year { font-size:180px; }
   }
+  .more { display:inline-flex; align-items:center; gap:6px; margin-top:14px; background:none; border:1px solid var(--c, #ed1d24); color:var(--c, #ed1d24); border-radius:20px; padding:6px 14px; font-size:.8rem; font-weight:700; cursor:pointer; letter-spacing:.5px; transition:background .2s, color .2s; }
+  .more:hover, .more:focus-visible { background:var(--c, #ed1d24); color:#000; outline:none; }
 </style>
 </head>
 <body>
@@ -56,6 +58,7 @@
 <div id="spacer"></div>
 
 <script src="events.js"></script>
+<script src="detail.js"></script>
 <script>
 const world = document.getElementById('world');
 const GAP = 1600;                                     // distance en Z entre deux époques
@@ -73,9 +76,11 @@ const slides = TIMELINE.map((ev, i) => {
         <h2>${ev.title}</h2>
         <p>${ev.text}</p>
         <div class="thumbs">${ev.thumbs.map(t => `<img src="${t}" alt="">`).join('')}</div>
+        <button class="more">Déployer la carte +</button>
       </div>
     </article>`;
   world.appendChild(s);
+  s.querySelector('.card').addEventListener('click', e => Detail.open(i, e.currentTarget));
   return s;
 });
 
