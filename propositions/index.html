@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Propositions Chronologie Marvel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..500&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="commun.css">
+<style>
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 12vh max(24px, env(safe-area-inset-right, 0px)) 12vh max(24px, env(safe-area-inset-left, 0px)); }
+  h1 { font: 400 clamp(2.4rem, 5vw, 4rem)/1 var(--f-display); letter-spacing: -.02em; margin: 16px 0 18px; }
+  h1 em { color: var(--red); }
+  .lead { color: var(--ink-2); max-width: 60ch; margin: 0 0 56px; }
+  .list { display: grid; gap: 0; border-top: 1px solid var(--rule); }
+  .item { display: grid; grid-template-columns: 90px minmax(0, 1fr) minmax(0, 1.1fr); gap: 32px; padding: 34px 0; border-bottom: 1px solid var(--rule); text-decoration: none; color: inherit; align-items: start; transition: background .3s; }
+  .item:hover { background: linear-gradient(90deg, #ed1d240d, transparent 60%); }
+  .item .n { font: 300 italic 3.4rem/1 var(--f-display); color: transparent; -webkit-text-stroke: 1px var(--gold); }
+  .item h2 { font: 400 1.9rem/1.1 var(--f-display); margin: 4px 0 10px; }
+  .item .tags { font: 500 .68rem/1.6 var(--f-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--dim); }
+  .item p { margin: 0 0 10px; color: var(--ink-2); font-size: .95rem; }
+  .item .go { font: 500 .72rem/1 var(--f-mono); letter-spacing: .14em; text-transform: uppercase; color: var(--gold-2); }
+  .item:focus-visible { outline: 1px solid var(--gold); outline-offset: 4px; }
+  .note { margin-top: 48px; color: var(--dim); font-size: .88rem; max-width: 70ch; }
+  @media (max-width: 760px) { .item { grid-template-columns: 1fr; gap: 10px; } .item .n { font-size: 2.4rem; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <span class="eyebrow">Écran d'accueil · Propositions</span>
+  <h1>Raconter l'histoire du <em>MCU</em></h1>
+  <p class="lead">Trois mises en scène pour la même chronologie complète : 10 chapitres, 58 événements datés. Dans chacune, chaque événement se déplie pour montrer ce qu'il change pour la suite, les personnages et les films où le voir.</p>
+
+  <nav class="list">
+    <a class="item" href="1-atlas.html">
+      <span class="n">I</span>
+      <div><h2>L'Atlas</h2><div class="tags">Globe 3D · récit à droite</div></div>
+      <div><p>Un globe terrestre accompagne la lecture : il pivote vers le lieu de chaque événement (Tønsberg, Washington, Wakanda, Sokovie…) et trace le trajet depuis l'événement précédent. Pour Asgard, l'espace ou le multivers, la caméra s'éloigne de la Terre.</p><span class="go">Ouvrir →</span></div>
+    </a>
+    <a class="item" href="2-la-cite.html">
+      <span class="n">II</span>
+      <div><h2>La Route de la Cité</h2><div class="tags">Scène 3D immersive · plein écran</div></div>
+      <div><p>On avance sur un pont de cristal rouge et or vers une cité dorée. Chaque chapitre est une porte monumentale gravée, chaque événement une stèle avec son affiche. Le récit s'affiche dans un panneau, et la cité se dévoile à la fin du parcours.</p><span class="go">Ouvrir →</span></div>
+    </a>
+    <a class="item" href="3-reliques.html">
+      <span class="n">III</span>
+      <div><h2>Les Reliques</h2><div class="tags">Frise historique · vitrine 3D</div></div>
+      <div><p>Une frise historique classique : colonne des dates, règle verticale, récit. À côté, une vitrine de musée présente l'objet qui a marqué chaque chapitre (Pierres d'Infinité, bouclier, Tesseract, réacteur ARK, Mjolnir, Gant…).</p><span class="go">Ouvrir →</span></div>
+    </a>
+  </nav>
+  <p class="note">Le texte vient de <span class="mono">contenu/chronologie-histoire.md</span> et passe par <span class="mono">scripts/build_chronologie.py</span> : une correction du texte se répercute dans les trois propositions.</p>
+</div>
+</body>
+</html>

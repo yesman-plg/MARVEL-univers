@@ -1,0 +1,82 @@
+/* ==========================================================================
+   Styles communs aux propositions de chronologie.
+   Palette du site (rouge Marvel, or) sur un noir chaud, typographie éditoriale.
+   ========================================================================== */
+:root {
+  --bg: #0b0b0d;
+  --bg-2: #121215;
+  --ink: #ece8e1;
+  --ink-2: #c9c5be;
+  --dim: #8c8882;
+  --rule: #2a292e;
+  --red: #ed1d24;
+  --gold: #c9a24a;
+  --gold-2: #e6c77a;
+  --f-display: 'Fraunces', 'Times New Roman', Georgia, serif;
+  --f-body: 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --f-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 16px; line-height: 1.6; }
+::selection { background: var(--red); color: #fff; }
+a { color: inherit; }
+
+.back-link { position: fixed; z-index: 50; top: 16px; left: max(16px, env(safe-area-inset-left, 0px)); font: 500 .75rem/1 var(--f-mono); letter-spacing: .08em;
+  text-transform: uppercase; color: var(--dim); text-decoration: none; padding: 8px 12px; border: 1px solid var(--rule); border-radius: 999px; background: #0b0b0dcc; backdrop-filter: blur(8px); }
+.back-link:hover { color: var(--ink); border-color: var(--dim); }
+
+/* --- Libellés ------------------------------------------------------------ */
+.eyebrow { font: 500 .72rem/1.2 var(--f-mono); letter-spacing: .16em; text-transform: uppercase; color: var(--gold); }
+.mono { font-family: var(--f-mono); }
+
+/* --- En-tête de chapitre --------------------------------------------------- */
+.chapter-head { padding: 18vh 0 6vh; }
+.chapter-head .num { font: 300 italic clamp(4rem, 10vw, 8rem)/.85 var(--f-display); color: transparent; -webkit-text-stroke: 1px var(--gold); display: block; margin-bottom: 18px; }
+.chapter-head h2 { font: 500 clamp(2rem, 4.2vw, 3.3rem)/1.05 var(--f-display); margin: 10px 0 16px; letter-spacing: -.01em; text-wrap: balance; }
+.chapter-head .intro { font: 400 1.12rem/1.65 var(--f-display); color: var(--ink-2); max-width: 46ch; margin: 0; font-style: italic; }
+
+/* --- Entrée d'événement ------------------------------------------------------ */
+.entry { position: relative; padding: 34px 0 30px; border-top: 1px solid var(--rule); }
+.entry-meta { display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: baseline; margin-bottom: 10px; }
+.entry-date { font: 600 .82rem/1 var(--f-mono); letter-spacing: .06em; color: var(--red); text-transform: uppercase; }
+.entry-place { font: 400 .74rem/1.2 var(--f-mono); color: var(--dim); letter-spacing: .04em; }
+.entry h3 { font: 500 clamp(1.35rem, 2.2vw, 1.7rem)/1.18 var(--f-display); margin: 0 0 12px; letter-spacing: -.005em; text-wrap: balance; }
+.entry-story { margin: 0; color: var(--ink-2); max-width: 64ch; }
+.entry-story strong, .entry-more strong { color: var(--ink); font-weight: 600; }
+.entry-story em, .entry-more em { font-style: italic; }
+.entry-list { margin: 0; padding-left: 1.1em; color: var(--ink-2); max-width: 64ch; }
+.entry-list li + li { margin-top: 8px; }
+
+.entry-toggle { margin-top: 16px; display: inline-flex; align-items: center; gap: 10px; background: none; border: 0; padding: 6px 0; color: var(--ink); cursor: pointer;
+  font: 500 .78rem/1 var(--f-mono); letter-spacing: .1em; text-transform: uppercase; }
+.entry-toggle .plus { width: 22px; height: 22px; border: 1px solid var(--gold); border-radius: 50%; position: relative; flex: none; transition: transform .4s cubic-bezier(.2,.8,.2,1), background .3s; }
+.entry-toggle .plus::before, .entry-toggle .plus::after { content: ''; position: absolute; left: 50%; top: 50%; width: 9px; height: 1px; background: var(--gold); transform: translate(-50%, -50%); }
+.entry-toggle .plus::after { transform: translate(-50%, -50%) rotate(90deg); transition: opacity .3s; }
+.entry-toggle:hover .plus { background: #c9a24a22; }
+.entry.open .entry-toggle .plus { transform: rotate(180deg); }
+.entry.open .entry-toggle .plus::after { opacity: 0; }
+.entry-toggle:focus-visible { outline: 2px solid var(--gold); outline-offset: 4px; border-radius: 4px; }
+
+.entry-more { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .55s cubic-bezier(.2,.8,.2,1); }
+.entry.open .entry-more { grid-template-rows: 1fr; }
+.entry-more > .inner { overflow: hidden; min-height: 0; }
+.entry-more .pad { padding-top: 22px; display: grid; gap: 24px; opacity: 0; transform: translateY(10px); transition: opacity .4s .1s, transform .5s .1s; }
+.entry.open .entry-more .pad { opacity: 1; transform: none; }
+.lbl { display: block; font: 500 .68rem/1 var(--f-mono); letter-spacing: .16em; text-transform: uppercase; color: var(--dim); margin-bottom: 10px; }
+.conseq { border-left: 2px solid var(--red); padding: 2px 0 2px 18px; }
+.conseq p { margin: 0; font: 400 1.02rem/1.6 var(--f-display); color: var(--ink); max-width: 60ch; }
+.who-list { display: flex; flex-wrap: wrap; gap: 10px; }
+.who-chip { display: inline-flex; align-items: center; gap: 9px; padding: 4px 14px 4px 4px; border: 1px solid var(--rule); border-radius: 999px; font-size: .84rem; color: var(--ink-2); }
+.who-chip img { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; }
+.who-text { color: var(--ink-2); font-size: .92rem; margin: 0; max-width: 64ch; }
+.watch-list { display: flex; gap: 14px; overflow-x: auto; padding-bottom: 6px; scrollbar-width: thin; }
+.watch-item { flex: none; width: 112px; text-decoration: none; color: var(--ink-2); font-size: .78rem; line-height: 1.35; }
+.watch-item .p { aspect-ratio: 2/3; border-radius: 4px; background: var(--bg-2) center/cover; margin-bottom: 8px; box-shadow: 0 10px 24px -12px #000; transition: transform .3s, box-shadow .3s; outline: 1px solid #ffffff12; }
+.watch-item:hover .p { transform: translateY(-3px); box-shadow: 0 16px 30px -12px var(--red); }
+.watch-item small { display: block; font-family: var(--f-mono); color: var(--dim); font-size: .7rem; margin-top: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+}

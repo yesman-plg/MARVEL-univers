@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>La Route de la Cité</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..600;1,9..144,300..500&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="commun.css">
+<style>
+  /* Scène 3D plein écran ; le défilement fait avancer sur le pont.
+     Panneau de lecture à droite, titre de chapitre en bas à gauche, frise des chapitres en bas. */
+  #scene { position: fixed; inset: 0; width: 100vw; height: 100vh; display: block; }
+  .veil { position: fixed; inset: 0; pointer-events: none; background:
+    linear-gradient(90deg, #07060800 40%, #070608cc 78%, #070608f2 100%), linear-gradient(0deg, #070608d0 0%, #07060800 32%); }
+  #track { height: 100vh; }
+
+  .intro { position: fixed; left: max(48px, env(safe-area-inset-left, 0px)); top: 50%; transform: translateY(-50%); max-width: 560px; pointer-events: none; transition: opacity .6s, transform .8s; }
+  .intro h1 { font: 400 clamp(3rem, 6vw, 5.6rem)/.95 var(--f-display); letter-spacing: -.02em; margin: 18px 0 22px; text-shadow: 0 4px 40px #000; }
+  .intro h1 em { color: var(--gold-2); }
+  .intro p { color: var(--ink-2); font-size: 1.08rem; max-width: 44ch; margin: 0; text-shadow: 0 2px 20px #000; }
+  .intro .cue { margin-top: 36px; font: 500 .7rem/1 var(--f-mono); letter-spacing: .2em; text-transform: uppercase; color: var(--dim); }
+  .intro.gone { opacity: 0; transform: translateY(-46%); }
+
+  .chapter-card { position: fixed; left: max(48px, env(safe-area-inset-left, 0px)); bottom: 110px; max-width: 520px; pointer-events: none; opacity: 0; transition: opacity .6s; }
+  .chapter-card.on { opacity: 1; }
+  .chapter-card .num { font: 300 italic 4.4rem/.9 var(--f-display); color: transparent; -webkit-text-stroke: 1px var(--gold); }
+  .chapter-card h2 { font: 400 2.3rem/1.05 var(--f-display); margin: 8px 0 0; text-shadow: 0 4px 30px #000; text-wrap: balance; }
+
+  .panel { position: fixed; right: max(40px, env(safe-area-inset-right, 0px)); top: 50%; transform: translateY(-50%); width: min(460px, 38vw); max-height: 76vh; overflow-y: auto;
+    padding: 4px 8px 4px 0; scrollbar-width: thin; opacity: 0; transition: opacity .5s; }
+  .panel.on { opacity: 1; }
+  .panel .entry { border-top: 0; padding: 0; animation: rise .7s cubic-bezier(.2,.8,.2,1); }
+  .panel .counter { font: 500 .7rem/1 var(--f-mono); letter-spacing: .14em; color: var(--dim); margin-bottom: 18px; display: flex; justify-content: space-between; text-transform: uppercase; }
+  .panel .intro-ch { animation: rise .7s cubic-bezier(.2,.8,.2,1); }
+  .panel .intro-ch p { font: 400 italic 1.15rem/1.6 var(--f-display); color: var(--ink); margin: 14px 0 0; }
+  @keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+
+  .frieze { position: fixed; left: max(48px, env(safe-area-inset-left, 0px)); right: max(40px, env(safe-area-inset-right, 0px)); bottom: 36px; display: flex; gap: 4px; }
+  .frieze button { all: unset; flex: var(--n) 1 0; cursor: pointer; padding-top: 14px; position: relative; font: 500 .62rem/1.2 var(--f-mono); letter-spacing: .1em; color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .frieze button::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 2px; background: #ffffff1f; }
+  .frieze button i { position: absolute; left: 0; top: 0; height: 2px; width: 0; background: linear-gradient(90deg, var(--red), var(--gold)); }
+  .frieze button.on { color: var(--ink); }
+  .frieze button:focus-visible { outline: 1px solid var(--gold); outline-offset: 4px; }
+
+  .nogl { position: fixed; inset: 0; display: none; place-items: center; color: var(--dim); }
+  @media (max-width: 900px) {
+    .veil { background: linear-gradient(0deg, #070608f5 0%, #070608e0 42%, #07060800 70%); }
+    .intro { left: 16px; right: 16px; top: 18%; transform: none; } .intro.gone { transform: translateY(-10px); }
+    .chapter-card { left: 16px; bottom: auto; top: 70px; } .chapter-card .num { font-size: 3rem; } .chapter-card h2 { font-size: 1.6rem; }
+    .panel { left: 16px; right: 16px; width: auto; top: auto; bottom: 64px; transform: none; max-height: 46vh; }
+    .frieze { left: 16px; right: 16px; bottom: 22px; } .frieze button { font-size: 0; }
+  }
+</style>
+<script type="importmap">{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/" } }</script>
+</head>
+<body>
+<a class="back-link" href="index.html">← Propositions</a>
+<canvas id="scene" aria-hidden="true"></canvas>
+<div class="veil"></div>
+
+<section class="intro" id="intro">
+  <span class="eyebrow">Chronologie de l'univers Marvel</span>
+  <h1>La Route de la <em>Cité</em></h1>
+  <p>Dix portes, dix époques. Avancez sur le pont : chaque stèle raconte un événement, chaque porte ouvre un nouveau chapitre de l'histoire.</p>
+  <div class="cue">Faites défiler pour avancer</div>
+</section>
+<div class="chapter-card" id="chcard"><div class="num" id="chnum"></div><h2 id="chtitle"></h2></div>
+<aside class="panel" id="panel" aria-live="polite"></aside>
+<nav class="frieze" id="frieze" aria-label="Chapitres"></nav>
+<div class="nogl" id="nogl">Cette proposition nécessite WebGL.</div>
+<div id="track"></div>
+
+<script src="chronologie-data.js"></script>
+<script src="commun.js"></script>
+<script type="module">
+import * as THREE from 'three';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { Reflector } from 'three/addons/objects/Reflector.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+
+const EV = Chrono.flat, CH = CHRONO.chapters;
+const MOBILE = innerWidth < 900;
+
+// --- Plan du pont : une porte par chapitre, une stèle par événement -----------------
+const GATE_GAP = 26, EV_GAP = 15;
+const gateZ = [], evZ = [];
+let z = -24;
+CH.forEach((ch, ci) => {
+  gateZ.push(z); z -= GATE_GAP;
+  ch.events.forEach(() => { evZ.push(z); z -= EV_GAP; });
+  z -= 8;
+});
+const END_Z = z - 30, CITY_Z = END_Z - 170, BRIDGE_LEN = -END_Z + 20 + 70;
+
+// --- Rendu ----------------------------------------------------------------------------
+const canvas = document.getElementById('scene');
+let renderer;
+try { renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' }); }
+catch (e) { document.getElementById('nogl').style.display = 'grid'; throw e; }
+renderer.setPixelRatio(Math.min(devicePixelRatio, MOBILE ? 1.5 : 1.75));
+renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05;
+const scene = new THREE.Scene();
+const FOG = new THREE.Color(.16, .04, .028);
+scene.fog = new THREE.FogExp2(FOG, 0.0048);
+const camera = new THREE.PerspectiveCamera(55, 1, .1, 1600);
+const pmrem = new THREE.PMREMGenerator(renderer);
+scene.environment = pmrem.fromScene(new RoomEnvironment(), .04).texture;
+
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+const bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), .5, .45, .88);
+composer.addPass(bloom);
+composer.addPass(new OutputPass());
+
+const C = { red: new THREE.Color('#ed1d24'), gold: new THREE.Color('#c9a24a'), goldHot: new THREE.Color('#ffd58a') };
+
+// --- Ciel : dégradé, nébuleuse lente, soleil derrière la cité -----------------------------
+const sky = new THREE.Mesh(new THREE.SphereGeometry(1200, 48, 24), new THREE.ShaderMaterial({
+  side: THREE.BackSide, depthWrite: false, fog: false, uniforms: { t: { value: 0 } },
+  vertexShader: `varying vec3 vD; void main(){ vD = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.); }`,
+  fragmentShader: `varying vec3 vD; uniform float t;
+    float h(vec3 p){ return fract(sin(dot(p, vec3(12.9898,78.233,37.719))) * 43758.5453); }
+    float n(vec3 p){ vec3 i = floor(p), f = fract(p); f = f*f*(3.-2.*f);
+      return mix(mix(mix(h(i),h(i+vec3(1,0,0)),f.x), mix(h(i+vec3(0,1,0)),h(i+vec3(1,1,0)),f.x), f.y),
+                 mix(mix(h(i+vec3(0,0,1)),h(i+vec3(1,0,1)),f.x), mix(h(i+vec3(0,1,1)),h(i+vec3(1,1,1)),f.x), f.y), f.z); }
+    float fbm(vec3 p){ float a = .5, s = 0.; for (int i = 0; i < 5; i++){ s += a * n(p); p *= 2.03; a *= .5; } return s; }
+    void main(){
+      vec3 d = normalize(vD); float y = d.y;
+      vec3 col = mix(vec3(.16,.04,.028), vec3(.05,.015,.02), smoothstep(-.02,.25,y));
+      col = mix(col, vec3(.16,.04,.028), smoothstep(.0,-.05,y));
+      col = mix(col, vec3(.008,.006,.012), smoothstep(.2,.75,y));
+      float neb = fbm(d * 3. + vec3(0., 0., t * .01));
+      col += vec3(.45,.08,.06) * pow(neb, 3.) * smoothstep(.0,.5,y) * .9;
+      col += vec3(.6,.42,.18) * pow(fbm(d * 6. - t * .005), 4.) * smoothstep(.05,.4,y) * .5;
+      vec3 sun = normalize(vec3(0., .08, -1.));
+      float s = max(dot(d, sun), 0.);
+      col += vec3(1.,.66,.3) * (pow(s, 600.) * 2.5 + pow(s, 40.) * .45 + pow(s, 6.) * .14);
+      gl_FragColor = vec4(col, 1.);
+    }`
+}));
+scene.add(sky);
+const followers = [sky];
+{ // étoiles
+  const n = 4000, a = new Float32Array(n * 3);
+  for (let i = 0; i < n; i++) { const v = new THREE.Vector3().randomDirection(); v.y = Math.abs(v.y) * .9 + .05; v.normalize().multiplyScalar(1000); v.toArray(a, i * 3); }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(a, 3));
+  const st = new THREE.Points(g, new THREE.PointsMaterial({ size: 1.4, sizeAttenuation: false, color: 0xfff0d8, transparent: true, opacity: .7, fog: false }));
+  scene.add(st); followers.push(st);
+}
+
+// --- Le vide sous le pont : miroir sombre ----------------------------------------------
+if (!MOBILE) {
+  const mirror = new Reflector(new THREE.PlaneGeometry(3000, 3000), { textureWidth: innerWidth * .5, textureHeight: innerHeight * .5, color: 0x2a2020 });
+  mirror.rotation.x = -Math.PI / 2; mirror.position.y = -14; scene.add(mirror); followers.push(mirror);
+}
+const haze = new THREE.Mesh(new THREE.PlaneGeometry(3000, 3000), new THREE.MeshBasicMaterial({ color: 0x120607, transparent: true, opacity: MOBILE ? 1 : .55, depthWrite: false }));
+haze.rotation.x = -Math.PI / 2; haze.position.y = -13.9; scene.add(haze); followers.push(haze);
+
+// --- Le pont -------------------------------------------------------------------------------
+const bridgeU = { t: { value: 0 }, len: { value: BRIDGE_LEN } };
+const deck = new THREE.Mesh(new THREE.PlaneGeometry(9, BRIDGE_LEN, 1, 1), new THREE.ShaderMaterial({
+  uniforms: THREE.UniformsUtils.merge([THREE.UniformsLib.fog, bridgeU]), fog: true,
+  vertexShader: `varying vec2 vUv;
+    #include <fog_pars_vertex>
+    void main(){ vUv = uv; vec4 mvPosition = modelViewMatrix * vec4(position,1.); gl_Position = projectionMatrix * mvPosition;
+    #include <fog_vertex>
+    }`,
+  fragmentShader: `varying vec2 vUv; uniform float t; uniform float len;
+    #include <fog_pars_fragment>
+    float h(vec2 p){ return fract(sin(dot(p, vec2(127.1,311.7))) * 43758.5453); }
+    void main(){
+      float y = vUv.y * len;
+      vec2 p = vec2((vUv.x - .5) * 7., y * .42);
+      vec2 q = vec2(p.x + p.y, p.x - p.y) * .7071;           // facettes en losange
+      vec2 cell = floor(q), f = fract(q);
+      float e = min(min(f.x, 1. - f.x), min(f.y, 1. - f.y));
+      float vein = smoothstep(.05, .0, e);
+      float r = h(cell);
+      float pulse = pow(.5 + .5 * sin(y * .11 - t * 2.4), 18.);  // ondes vers la cité
+      vec3 glass = mix(vec3(.16,.015,.02), vec3(.42,.05,.04), r) * (.6 + .4 * sin(t * 1.2 + r * 40.));
+      vec3 col = glass + vec3(1.,.72,.34) * vein * (.28 + pulse * 2.2);
+      float side = smoothstep(.465, .5, abs(vUv.x - .5));
+      col += vec3(1.,.78,.42) * side * 1.15;
+      col += vec3(1.,.5,.3) * pulse * .25;
+      gl_FragColor = vec4(col, 1.);
+      #include <fog_fragment>
+    }`
+}));
+deck.rotation.x = -Math.PI / 2; deck.position.set(0, 0, 20 - BRIDGE_LEN / 2); scene.add(deck);
+
+const gold = new THREE.MeshStandardMaterial({ color: 0xc9a24a, metalness: 1, roughness: .28, envMapIntensity: 1.2 });
+const darkMetal = new THREE.MeshStandardMaterial({ color: 0x1a1414, metalness: .85, roughness: .45 });
+const glow = new THREE.MeshBasicMaterial({ color: new THREE.Color(1.25, .82, .4) });
+const glowRed = new THREE.MeshBasicMaterial({ color: new THREE.Color(1.5, .14, .12) });
+
+// tablier et poutre sous le verre
+const under = new THREE.Mesh(new THREE.BoxGeometry(9.6, 1.2, BRIDGE_LEN), darkMetal);
+under.position.set(0, -.62, deck.position.z); scene.add(under);
+[-4.8, 4.8].forEach(x => {
+  const lip = new THREE.Mesh(new THREE.BoxGeometry(.14, .14, BRIDGE_LEN), glow); lip.position.set(x, -.05, deck.position.z); scene.add(lip);
+  const low = new THREE.Mesh(new THREE.BoxGeometry(.08, .08, BRIDGE_LEN), glowRed); low.position.set(x * 1.01, -1.2, deck.position.z); scene.add(low);
+});
+// balustres + lanternes (instanciés)
+{
+  const count = Math.floor(BRIDGE_LEN / 7) * 2;
+  const post = new THREE.InstancedMesh(new THREE.CylinderGeometry(.07, .11, 1.5, 8), gold, count);
+  const lamp = new THREE.InstancedMesh(new THREE.OctahedronGeometry(.12), glow, count);
+  const m = new THREE.Matrix4(); let k = 0;
+  for (let zz = 16; zz > END_Z; zz -= 7) for (const x of [-4.7, 4.7]) {
+    if (k >= count) break;
+    m.makeTranslation(x, .75, zz); post.setMatrixAt(k, m);
+    m.makeTranslation(x, 1.62, zz); lamp.setMatrixAt(k, m); k++;
+  }
+  post.count = lamp.count = k; scene.add(post, lamp);
+  const rail = new THREE.Mesh(new THREE.BoxGeometry(.05, .05, BRIDGE_LEN), gold);
+  [-4.7, 4.7].forEach(x => { const r = rail.clone(); r.position.set(x, 1.45, deck.position.z); scene.add(r); });
+}
+// piles du pont qui plongent dans le vide
+for (let zz = -40; zz > END_Z; zz -= 90) {
+  const pier = new THREE.Mesh(new THREE.CylinderGeometry(1.4, 2.6, 14, 6), darkMetal); pier.position.set(0, -7.6, zz); scene.add(pier);
+  const band = new THREE.Mesh(new THREE.TorusGeometry(1.75, .06, 6, 6), glow); band.rotation.x = Math.PI / 2; band.position.set(0, -4, zz); scene.add(band);
+}
+
+// --- Textures dessinées (portes, stèles) -------------------------------------------------
+function textTex(draw, w, h) {
+  const c = document.createElement('canvas'); c.width = w; c.height = h; const g = c.getContext('2d'); draw(g, w, h);
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t;
+}
+const SERIF = '"Fraunces", "Times New Roman", serif', MONO = '"IBM Plex Mono", monospace';
+
+// --- Portes de chapitre ---------------------------------------------------------------------
+const gates = CH.map((ch, ci) => {
+  const g = new THREE.Group(); g.position.set(0, 0, gateZ[ci]); scene.add(g);
+  const H = 17, W = 7.2;
+  for (const s of [-1, 1]) {
+    const pil = new THREE.Mesh(new THREE.CylinderGeometry(.55, 1.05, H, 4, 1), gold); pil.rotation.y = Math.PI / 4; pil.position.set(s * W, H / 2, 0); g.add(pil);
+    const base = new THREE.Mesh(new THREE.BoxGeometry(2.6, 1.1, 2.6), darkMetal); base.position.set(s * W, .55, 0); g.add(base);
+    const cap = new THREE.Mesh(new THREE.ConeGeometry(.8, 3.4, 4), gold); cap.rotation.y = Math.PI / 4; cap.position.set(s * W, H + 1.6, 0); g.add(cap);
+    const seam = new THREE.Mesh(new THREE.BoxGeometry(.06, H * .8, .06), glow); seam.position.set(s * W, H * .45, .78); g.add(seam);
+  }
+  // linteau en arc
+  const arcCurve = new THREE.EllipseCurve(0, 0, W, 4.2, 0, Math.PI, false);
+  const arcPts = arcCurve.getPoints(40).map(p => new THREE.Vector3(p.x, p.y, 0));
+  const arc = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(arcPts), 60, .32, 8), gold); arc.position.y = H - 1.5; g.add(arc);
+  const arcGlow = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(arcPts.map(p => p.clone().multiplyScalar(.93))), 60, .05, 6), glowRed); arcGlow.position.y = H - 1.5; g.add(arcGlow);
+  // plaque : numéro romain + titre
+  const plateTex = textTex((c, w, h) => {
+    c.fillStyle = '#0d0b0b'; c.fillRect(0, 0, w, h);
+    c.strokeStyle = '#c9a24a'; c.lineWidth = 6; c.strokeRect(14, 14, w - 28, h - 28);
+    c.fillStyle = '#ffd58a'; c.textAlign = 'center'; c.textBaseline = 'middle';
+    c.font = `italic 300 190px ${SERIF}`; c.fillText(Chrono.ROMAN[ci], w / 2, h * .38);
+    c.font = `500 30px ${MONO}`; c.fillStyle = '#c9a24a'; c.fillText(ch.period.toUpperCase(), w / 2, h * .66);
+    c.font = `400 46px ${SERIF}`; c.fillStyle = '#ece8e1';
+    const words = ch.title.split(' '); let line = '', lines = [];
+    words.forEach(wd => { const t = line ? line + ' ' + wd : wd; if (c.measureText(t).width > w - 90) { lines.push(line); line = wd; } else line = t; }); lines.push(line);
+    lines.slice(0, 2).forEach((l, i) => c.fillText(l, w / 2, h * .79 + i * 52));
+  }, 1024, 640);
+  const plate = new THREE.Mesh(new THREE.PlaneGeometry(6.4, 4), new THREE.MeshBasicMaterial({ map: plateTex, toneMapped: false, color: new THREE.Color(.92, .92, .92) }));
+  plate.position.set(0, H + 1.4, .4); g.add(plate);
+  const frame = new THREE.Mesh(new THREE.BoxGeometry(6.9, 4.5, .3), darkMetal); frame.position.set(0, H + 1.4, .2); g.add(frame);
+  const light = new THREE.PointLight(0xffb060, 30, 40, 1.6); light.position.set(0, H - 2, 4); g.add(light);
+  return { g, plate, arcGlow, light };
+});
+
+// --- Stèles d'événements ----------------------------------------------------------------------
+const loader = new THREE.TextureLoader();
+const steleGeo = new THREE.BoxGeometry(2.8, 5.2, .5);
+const haloTex = textTex((c, w, h) => { const g = c.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, w / 2); g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(.45, 'rgba(255,255,255,.35)'); g.addColorStop(1, 'rgba(255,255,255,0)'); c.fillStyle = g; c.fillRect(0, 0, w, h); }, 256, 256);
+const steles = EV.map((ev, i) => {
+  const side = i % 2 ? -1 : 1;
+  const g = new THREE.Group(); g.position.set(side * 7.6, 0, evZ[i]); g.rotation.y = -side * .5; scene.add(g);
+  const ped = new THREE.Mesh(new THREE.CylinderGeometry(1.7, 2, .6, 6), darkMetal); ped.position.y = .3; g.add(ped);
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(1.85, .04, 6, 6), glow); ring.rotation.x = Math.PI / 2; ring.position.y = .62; g.add(ring);
+  const body = new THREE.Group(); body.position.y = 3.6; g.add(body);
+  const slab = new THREE.Mesh(steleGeo, new THREE.MeshStandardMaterial({ color: 0x120f10, metalness: .6, roughness: .35 })); body.add(slab);
+  const edge = new THREE.Mesh(new THREE.BoxGeometry(2.95, 5.35, .44), gold); edge.position.z = -.05; body.add(edge);
+  const posterMat = new THREE.MeshBasicMaterial({ color: 0x777777, toneMapped: false });
+  if (ev.image) loader.load(Chrono.img(ev.image), t => { t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; posterMat.map = t; posterMat.needsUpdate = true; });
+  const poster = new THREE.Mesh(new THREE.PlaneGeometry(2.3, 3.45), posterMat); poster.position.set(0, .55, .26); body.add(poster);
+  const label = new THREE.Mesh(new THREE.PlaneGeometry(2.4, .8), new THREE.MeshBasicMaterial({ transparent: true, toneMapped: false, map: textTex((c, w, h) => {
+    c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillStyle = '#ed1d24'; c.font = `600 44px ${MONO}`; c.fillText(ev.date.toUpperCase(), w / 2, h * .32);
+    c.fillStyle = '#ece8e1'; c.font = `400 40px ${SERIF}`; let t = ev.title; while (c.measureText(t).width > w - 30) t = t.slice(0, -2); if (t !== ev.title) t += '…';
+    c.fillText(t, w / 2, h * .74);
+  }, 768, 256) }));
+  label.position.set(0, -1.85, .26); body.add(label);
+  const halo = new THREE.Mesh(new THREE.PlaneGeometry(7, 9), new THREE.MeshBasicMaterial({ map: haloTex, color: C.red, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false }));
+  halo.position.z = -.4; body.add(halo);
+  return { g, body, posterMat, halo, ring, side };
+});
+
+// --- La Cité ------------------------------------------------------------------------------------
+const city = new THREE.Group(); city.position.set(0, -6, CITY_Z); scene.add(city);
+// île flottante
+const islandPts = [[0, -60], [22, -48], [55, -28], [92, -12], [118, -2], [124, 2], [0, 2]].map(([x, y]) => new THREE.Vector2(x, y));
+const island = new THREE.Mesh(new THREE.LatheGeometry(islandPts, 48), new THREE.MeshStandardMaterial({ color: 0x1c1614, metalness: .5, roughness: .7 }));
+city.add(island);
+const islandRim = new THREE.Mesh(new THREE.TorusGeometry(123, .5, 6, 120), glow); islandRim.rotation.x = Math.PI / 2; islandRim.position.y = 2; city.add(islandRim);
+// chutes de lumière qui tombent du bord de l'île
+const fallMat = new THREE.ShaderMaterial({
+  transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, uniforms: { t: { value: 0 } },
+  vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.); }`,
+  fragmentShader: `varying vec2 vUv; uniform float t;
+    float h(float x){ return fract(sin(x * 91.7) * 4375.5); }
+    void main(){ float col = floor(vUv.x * 140.); float sp = .4 + h(col) * .8;
+      float s = pow(fract(vUv.y * 2. + t * sp + h(col + 3.)), 6.) * step(.35, h(col + 7.));
+      float fade = smoothstep(0., .25, vUv.y) * smoothstep(1., .85, vUv.y);
+      gl_FragColor = vec4(vec3(1.,.7,.35) * (s * 1.6 + .08) * fade, 1.); }`
+});
+const falls = new THREE.Mesh(new THREE.CylinderGeometry(122, 104, 60, 120, 1, true), fallMat); falls.position.y = -28; city.add(falls);
+
+// tours : instanciées sur des anneaux concentriques, de plus en plus hautes vers le centre
+const windowTex = textTex((c, w, h) => {
+  c.fillStyle = '#000'; c.fillRect(0, 0, w, h);
+  for (let y = 4; y < h; y += 10) for (let x = 3; x < w; x += 8) if (Math.random() > .55) { c.fillStyle = Math.random() > .85 ? '#ff6a40' : '#ffcf80'; c.fillRect(x, y, 4, 5); }
+}, 64, 256);
+windowTex.wrapS = windowTex.wrapT = THREE.RepeatWrapping;
+const towerMat = new THREE.MeshStandardMaterial({ color: 0xb08a3a, metalness: .95, roughness: .3, emissive: 0xffffff, emissiveMap: windowTex, emissiveIntensity: 1.4 });
+const spireMat = gold;
+{
+  let seed = 11; const rnd = () => (seed = seed * 16807 % 2147483647) / 2147483647;
+  const towers = [], spires = [];
+  for (let ring = 0; ring < 7; ring++) {
+    const r = 18 + ring * 14, n = Math.floor(10 + ring * 7);
+    for (let i = 0; i < n; i++) {
+      const a = i / n * Math.PI * 2 + rnd() * .2;
+      if (Math.abs(Math.sin(a)) < .12 && Math.cos(a) > 0) continue;            // avenue d'arrivée du pont
+      const h = (70 - ring * 8.5) * (.55 + rnd() * .7), w = 2.6 + rnd() * 3.4;
+      towers.push([Math.sin(a) * r, h, Math.cos(a) * r, w, a]);
+      if (rnd() > .35) spires.push([Math.sin(a) * r, h, Math.cos(a) * r, w]);
+    }
+  }
+  const tGeo = new THREE.CylinderGeometry(.5, .62, 1, 6); tGeo.translate(0, .5, 0);
+  const tm = new THREE.InstancedMesh(tGeo, towerMat, towers.length);
+  const sGeo = new THREE.ConeGeometry(.5, 1, 6); sGeo.translate(0, .5, 0);
+  const sm = new THREE.InstancedMesh(sGeo, spireMat, spires.length);
+  const m = new THREE.Matrix4(), q = new THREE.Quaternion(), s = new THREE.Vector3(), p = new THREE.Vector3();
+  towers.forEach(([x, h, zz, w, a], i) => { q.setFromAxisAngle(new THREE.Vector3(0, 1, 0), a); m.compose(p.set(x, 2, zz), q, s.set(w, h, w)); tm.setMatrixAt(i, m); });
+  spires.forEach(([x, h, zz, w], i) => { m.compose(p.set(x, 2 + h, zz), q.identity(), s.set(w * .8, h * .45, w * .8)); sm.setMatrixAt(i, m); });
+  city.add(tm, sm);
+}
+// palais central à étages
+{
+  const tiers = [[26, 8], [20, 10], [15, 14], [10, 22], [6.5, 30], [3.6, 34]];
+  let y = 2;
+  tiers.forEach(([r, h], i) => {
+    const t = new THREE.Mesh(new THREE.CylinderGeometry(r * .78, r, h, 8), i % 2 ? gold : towerMat); t.position.y = y + h / 2; city.add(t);
+    const band = new THREE.Mesh(new THREE.TorusGeometry(r * .8, .25, 6, 8), glow); band.rotation.x = Math.PI / 2; band.position.y = y + h; band.rotation.z = Math.PI / 8; city.add(band);
+    y += h;
+  });
+  const tip = new THREE.Mesh(new THREE.ConeGeometry(3.6, 46, 8), gold); tip.position.y = y + 23; city.add(tip);
+  for (let k = 0; k < 8; k++) {
+    const a = k / 8 * Math.PI * 2;
+    const sp = new THREE.Mesh(new THREE.ConeGeometry(1.4, 40, 6), gold); sp.position.set(Math.cos(a) * 20, 54, Math.sin(a) * 20); city.add(sp);
+    const col = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.6, 34, 6), towerMat); col.position.set(Math.cos(a) * 20, 19, Math.sin(a) * 20); city.add(col);
+  }
+  const crown = new THREE.Mesh(new THREE.TorusGeometry(14, .5, 8, 64), glow); crown.position.y = y - 6; crown.rotation.x = Math.PI / 2; city.add(crown);
+  // colonne de lumière vers le ciel
+  const beam = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 2.4, 900, 16, 1, true), new THREE.MeshBasicMaterial({ color: new THREE.Color(1., .6, .3), transparent: true, opacity: .22, blending: THREE.AdditiveBlending, depthWrite: false, fog: false }));
+  beam.position.y = y + 450; city.add(beam);
+  var cityLight = new THREE.PointLight(0xffb060, 1800, 420, 1.4); cityLight.position.set(0, 90, 60); city.add(cityLight);
+}
+scene.add(new THREE.HemisphereLight(0xffd7a0, 0x200808, .5));
+const key = new THREE.DirectionalLight(0xffc98a, 1.6); key.position.set(-60, 80, CITY_Z + 300); scene.add(key);
+
+// braises qui flottent
+const embers = (() => {
+  const n = MOBILE ? 600 : 1400, a = new Float32Array(n * 3);
+  for (let i = 0; i < n; i++) a.set([(Math.random() - .5) * 140, Math.random() * 40 - 10, 30 - Math.random() * (BRIDGE_LEN + 200)], i * 3);
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(a, 3));
+  const p = new THREE.Points(g, new THREE.PointsMaterial({ size: .18, color: new THREE.Color(2, .6, .3), transparent: true, opacity: .8, blending: THREE.AdditiveBlending, depthWrite: false }));
+  scene.add(p); return p;
+})();
+
+// --- Interface ------------------------------------------------------------------------------------
+const panel = document.getElementById('panel'), intro = document.getElementById('intro');
+const chcard = document.getElementById('chcard'), chnum = document.getElementById('chnum'), chtitle = document.getElementById('chtitle');
+const frieze = document.getElementById('frieze');
+const friezeBtns = CH.map((ch, ci) => {
+  const b = document.createElement('button'); b.style.setProperty('--n', ch.events.length + 1);
+  b.innerHTML = `<i></i>${Chrono.ROMAN[ci]} · ${ch.title}`; b.title = ch.title;
+  b.onclick = () => scrollTo({ top: scrollForZ(gateZ[ci] + 18), behavior: 'smooth' });
+  frieze.appendChild(b); return b;
+});
+Chrono.bindExpand(panel);
+
+// défilement -> position de la caméra (z)
+const START_Z = 22, STOP_Z = END_Z - 20;
+document.getElementById('track').style.height = (EV.length * 55 + 260) + 'vh';
+const maxScroll = () => document.documentElement.scrollHeight - innerHeight;
+const zForScroll = s => START_Z + (STOP_Z - START_Z) * (s / maxScroll());
+const scrollForZ = zz => (zz - START_Z) / (STOP_Z - START_Z) * maxScroll();
+
+let shown = null;
+function showPanel(kind, idx) {
+  const key = kind + idx;
+  if (key === shown) return; shown = key;
+  if (kind === 'none') { panel.classList.remove('on'); return; }
+  if (kind === 'end') {
+    panel.innerHTML = `<div class="intro-ch"><span class="eyebrow">Aujourd'hui</span><p>Vous êtes arrivé au bout de la chronologie. La suite s'écrit dans le multivers : <em>Avengers : Doomsday</em> est attendu en décembre 2026.</p>
+      <div class="counter" style="margin-top:26px"><span>${EV.length} événements · ${CH.length} chapitres</span><a href="../index.html#/chronologie" style="color:var(--gold-2)">Ordre de visionnage →</a></div></div>`;
+    panel.classList.add('on'); return;
+  }
+  if (kind === 'ch') {
+    const ch = CH[idx];
+    panel.innerHTML = `<div class="intro-ch"><span class="eyebrow">Chapitre ${idx + 1} · ${ch.period}</span><p>${ch.intro}</p>
+      <div class="counter" style="margin-top:26px"><span>${ch.events.length} événements</span><span>Continuez d'avancer</span></div></div>`;
+  } else {
+    const ev = EV[idx];
+    panel.innerHTML = `<div class="counter"><span>Chapitre ${Chrono.ROMAN[ev.ci]}</span><span>${ev.ei + 1} / ${CH[ev.ci].events.length}</span></div>` + Chrono.entryHTML(ev);
+  }
+  panel.classList.add('on');
+}
+
+// --- Boucle ---------------------------------------------------------------------------------------
+let camZ = START_Z, targetZ = START_Z, activeEv = -1;
+addEventListener('scroll', () => { targetZ = zForScroll(scrollY); }, { passive: true });
+function resize() {
+  renderer.setSize(innerWidth, innerHeight, false); composer.setSize(innerWidth, innerHeight);
+  bloom.resolution.set(innerWidth / 2, innerHeight / 2);
+  camera.aspect = innerWidth / innerHeight; camera.fov = camera.aspect < 1 ? 72 : 55; camera.updateProjectionMatrix();
+}
+addEventListener('resize', resize); resize(); targetZ = camZ = zForScroll(scrollY);
+// accès direct pour les tests visuels : place la caméra sans attendre l'inertie
+window.__jump = () => { camZ = targetZ = zForScroll(scrollY); };
+
+const look = new THREE.Vector3(0, 4, -100), lookT = new THREE.Vector3(), clock = new THREE.Clock();
+renderer.setAnimationLoop(() => {
+  const dt = Math.min(clock.getDelta(), .05), t = clock.elapsedTime;
+  camZ += (targetZ - camZ) * Math.min(1, dt * 3.2);
+  const endK = 1 - THREE.MathUtils.smoothstep(camZ, END_Z - 20, END_Z + 30);     // à la fin, la caméra s'élève vers la cité
+  camera.position.set(Math.sin(t * .3) * .25, 2.4 + endK * 16 + Math.sin(t * .8) * .04, camZ);
+  scene.fog.density = .0048 - endK * .0026;
+  followers.forEach(o => { o.position.x = camera.position.x; o.position.z = camera.position.z; });
+
+  // chapitre courant et événement actif
+  let ci = 0; for (let k = 0; k < gateZ.length; k++) if (camZ < gateZ[k] + 20) ci = k;
+  let best = -1, bd = 1e9;
+  EV.forEach((ev, i) => { const d = camZ - evZ[i]; if (d > 3 && d < 26 && d < bd) { bd = d; best = i; } });
+  if (best !== activeEv) activeEv = best;
+  const beforeFirst = camZ > gateZ[0] + 16;
+  intro.classList.toggle('gone', !beforeFirst);
+  if (beforeFirst) showPanel('none', 0);
+  else if (best >= 0) showPanel('ev', best);
+  else if (camZ > END_Z + 40) showPanel('ch', ci);
+  else showPanel('end', 0);
+  const inChapter = !beforeFirst && camZ > END_Z + 40;
+  chcard.classList.toggle('on', inChapter);
+  if (inChapter && chnum.textContent !== Chrono.ROMAN[ci]) { chnum.textContent = Chrono.ROMAN[ci]; chtitle.textContent = CH[ci].title; }
+  friezeBtns.forEach((b, k) => {
+    const a = gateZ[k], bEnd = k + 1 < gateZ.length ? gateZ[k + 1] : END_Z;
+    const f = THREE.MathUtils.clamp((a - camZ) / (a - bEnd), 0, 1);
+    b.querySelector('i').style.width = (f * 100) + '%'; b.classList.toggle('on', k === ci && !beforeFirst);
+  });
+
+  // regard : vers la stèle active, sinon vers la cité
+  if (best >= 0) { const s = steles[best]; lookT.set(s.g.position.x * .5, 3.4, evZ[best] - 4); }
+  else lookT.set(0, 5 + endK * 34, CITY_Z);
+  look.lerp(lookT, Math.min(1, dt * 2)); camera.lookAt(look);
+
+  steles.forEach((s, i) => {
+    const on = i === best ? 1 : 0;
+    s.halo.material.opacity += ((on ? .5 : 0) - s.halo.material.opacity) * Math.min(1, dt * 4);
+    s.body.position.y += ((on ? 4.1 : 3.6) - s.body.position.y) * Math.min(1, dt * 3);
+    s.posterMat.color.lerp(on ? new THREE.Color(1.1, 1.1, 1.1) : new THREE.Color(.55, .55, .55), Math.min(1, dt * 4));
+    s.ring.scale.setScalar(1 + on * Math.sin(t * 3) * .04);
+  });
+  gates.forEach((g, k) => { g.light.intensity = k === ci ? 45 : 12; });
+  bridgeU.t.value = t; sky.material.uniforms.t.value = t; fallMat.uniforms.t.value = t;
+  embers.position.y = (t * .6) % 10;
+  composer.render();
+});
+</script>
+</body>
+</html>
